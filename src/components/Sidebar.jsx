@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="w-64 bg-white border-r hidden md:flex flex-col">
+      <aside className="w-64 border-r hidden md:flex flex-col">
         <div className="p-4 text-xl font-bold border-b">TalentFlow</div>
         <nav className="flex-1 p-2">
           {links.map((link) => (

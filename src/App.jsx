@@ -18,9 +18,9 @@ export default function App() {
 
   return (
     <Router>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen">
         {/* Sidebar: pass open/close state */}
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        {/* <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} /> */}
 
         {/* Main Content */}
         <div className="flex flex-col flex-1">

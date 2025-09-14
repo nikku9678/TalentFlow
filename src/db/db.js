@@ -6,7 +6,8 @@ db.version(1).stores({
   jobs: "++id,slug,title,status,order", // order is numeric
   candidates: "++id,jobId,name,email,stage",
   timelines: "++id,candidateId,timestamp,fromStage,toStage,meta",
-  assessments: "jobId, title", // jobId as primary key
+  assessments: "++id,jobId,title", // ++id is primary key, multiple assessments allowed per job
+
   submissions: "++id,jobId,candidateId,submittedAt",
   notes: "++id, candidateId, text, timestamp" // ✅ added notes store
 });

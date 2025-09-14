@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import CandidateCard from "../components/candidate/CandidateCard"
+import CandidateStats from "../components/candidate/CandidateStats"
+import Loader from "../components/loader/Loader"
 
 export default function Candidates() {
   const [candidates, setCandidates] = useState([])
@@ -43,21 +45,30 @@ export default function Candidates() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center">Candidates</h2>
+      <div className="min-h-screen">
+        <h2 className="text-2xl font-bold mb-6 text-start">Candidates</h2>
 
+      {/* Stats */}
+      {/* <CandidateStats candidates={candidates} /> */}
       {/* Search + Filter */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
         <input
           type="text"
           placeholder="Search by name or email..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
+          className="w-full md:w-1/2 px-4 py-2 border rounded-2xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
         />
         <select
           value={stageFilter}
-          onChange={(e) => { setStageFilter(e.target.value); setPage(1); }}
-          className="w-full md:w-1/4 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setStageFilter(e.target.value)
+            setPage(1)
+          }}
+          className="w-full md:w-1/4 px-4 py-2 border rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="All">All Stages</option>
           <option value="applied">Applied</option>
@@ -69,48 +80,30 @@ export default function Candidates() {
         </select>
       </div>
 
+      
+
       {/* Loading / Error */}
-      {loading && <p className="text-center text-gray-500">Loading...</p>}
+      {loading && <Loader />}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {!loading && !error && candidates.length > 0 ? (
-          candidates.map((candidate) => (
-            <div
-              key={candidate.id}
-              className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition"
-            >
-              <Link
-                to={`/candidates/${candidate.id}`}
-                className="text-lg font-semibold text-blue-600 hover:underline"
-              >
-                {candidate.name}
-              </Link>
-              <p className="text-gray-600">{candidate.email}</p>
-              <span
-                className={`inline-block mt-3 px-3 py-1 text-sm font-medium rounded-full 
-                  ${
-                    candidate.stage === "hired"
-                      ? "bg-green-100 text-green-700"
-                      : candidate.stage === "offer"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : candidate.stage === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-              >
-                {candidate.stage}
-              </span>
-            </div>
-          ))
-        ) : (
-          !loading && !error && (
-            <p className="text-center col-span-3 text-gray-500">
-              No candidates found.
-            </p>
-          )
-        )}
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {!loading && !error && candidates.length > 0 ? (
+    candidates.map((candidate) => (
+      <CandidateCard key={candidate.id} candidate={candidate} />
+    ))
+  ) : (
+    !loading &&
+    !error && (
+      <div className="flex items-center justify-center col-span-3 min-h-[50vh]">
+        <p className="text-center text-xl text-gray-500">
+          No candidates found.
+        </p>
+      </div>
+    )
+  )}
+</div>
+
       </div>
 
       {/* Pagination */}

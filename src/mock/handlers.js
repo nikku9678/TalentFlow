@@ -294,30 +294,35 @@ http.post("/candidates/:id/notes", async ({ request, params }) => {
 
 
   // -------------------- ASSESSMENTS --------------------
-  http.get("/assessments/:jobId", async ({ params }) => {
-    await simulateNetwork(LATENCY)
-    const jobId = parseInt(params.jobId, 10)
-    const assessment = await db.assessments.get(jobId)
-    if (!assessment) return HttpResponse.json({ message: "Assessment not found" }, { status: 404 })
-    return HttpResponse.json(assessment)
-  }),
+ http.get("/assessments/:jobId", async ({ params }) => {
+  await simulateNetwork(LATENCY);
+  const jobId = parseInt(params.jobId, 10);
+  const assessments = await db.assessments.where("jobId").equals(jobId).toArray();
+  if (!assessments.length)
+    return HttpResponse.json({ message: "No assessments found" }, { status: 404 });
+  return HttpResponse.json(assessments);
+}),
 
-  http.put("/assessments/:jobId", async ({ request, params }) => {
-    await simulateNetwork(LATENCY)
-    if (shouldFail(WRITE_ERROR_RATE)) {
-      return HttpResponse.json({ message: "Simulated save assessment error" }, { status: 500 })
-    }
+http.put("/assessments/:jobId", async ({ request, params }) => {
+  await simulateNetwork(LATENCY);
+  if (shouldFail(WRITE_ERROR_RATE))
+    return HttpResponse.json({ message: "Simulated save assessment error" }, { status: 500 });
 
-    const jobId = parseInt(params.jobId, 10)
-    const body = await request.json()
-    if (!body.questions) {
-      return HttpResponse.json({ message: "Invalid assessment payload" }, { status: 400 })
-    }
+  const jobId = parseInt(params.jobId, 10);
+  const body = await request.json();
+  if (!body.questions) {
+    return HttpResponse.json({ message: "Invalid assessment payload" }, { status: 400 });
+  }
 
-    const payload = { jobId, ...body }
-    await db.assessments.put(payload)
-    return HttpResponse.json(payload)
-  }),
+  const payload = { ...body, jobId, createdAt: new Date().toISOString() };
+
+  // Use add instead of put for creating new assessments
+  const id = await db.assessments.add(payload);
+  const saved = await db.assessments.get(id);
+
+  return HttpResponse.json(saved);
+}),
+
 
   http.post("/assessments/:jobId/submit", async ({ request, params }) => {
     await simulateNetwork(LATENCY)
