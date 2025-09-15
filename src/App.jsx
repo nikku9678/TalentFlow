@@ -12,6 +12,7 @@ import CandidateProfile from "./pages/CandidateProfile"
 import JobDetail from "./pages/JobDetail"
 import AssessmentBuilder from "./components/AssessmentBuilder"
 import AssessmentView from "./components/assessment/AssessmentView"
+import CreateJob from "./components/jobs/CreateJob"
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -46,6 +47,7 @@ export default function App() {
              <Route path="/assessment/create/:id" element={<AssessmentBuilder />} />
   <Route path="/assessment/edit/:id" element={<AssessmentBuilder mode="edit" />} />
   <Route path="/assessment/view/:id" element={<AssessmentView />} />
+  <Route path="/job/create" element={<CreateJob />} />
             </Routes>
           </main>
         </div>
