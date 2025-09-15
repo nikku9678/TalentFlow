@@ -39,7 +39,7 @@ export default function CandidateStages({ candidate, setCandidate, setTimeline }
     if (candidate) setBoard(buildBoard(candidate));
   }, [candidate]);
 
-  const handleDragEnd = async (result) => {
+  const handleDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
 
@@ -47,7 +47,6 @@ export default function CandidateStages({ candidate, setCandidate, setTimeline }
     const destCol = destination.droppableId;
 
     if (sourceCol !== destCol) {
-      // API/db update
       const updated = { ...candidate, stage: destCol };
       setCandidate(updated);
 
@@ -74,15 +73,16 @@ export default function CandidateStages({ candidate, setCandidate, setTimeline }
           const { icon: Icon, color } = STAGE_META[stage];
           return (
             <Droppable key={stage} droppableId={stage}>
-              {(provided) => (
+              {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="bg-gray-100 p-4 rounded-lg w-full md:w-40 min-h-[100px] shadow-md flex-shrink-0"
+                  className={`p-4 rounded-lg w-full md:w-40 min-h-[120px] flex-shrink-0 transition-colors duration-300 
+                    ${snapshot.isDraggingOver ? "bg-blue-100 dark:bg-blue-900" : "bg-gray-100 dark:bg-gray-800"}`}
                 >
                   <div className="flex items-center mb-2">
                     <Icon className={`w-5 h-5 mr-2 ${color} text-white p-1 rounded-full`} />
-                    <h3 className="font-semibold capitalize">{stage}</h3>
+                    <h3 className="font-semibold capitalize dark:text-gray-200">{stage}</h3>
                   </div>
                   {board[stage]?.map((card, index) => (
                     <Draggable key={card.id} draggableId={card.id} index={index}>
@@ -91,14 +91,14 @@ export default function CandidateStages({ candidate, setCandidate, setTimeline }
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="p-3 mt-4 bg-white rounded-lg shadow mb-2 hover:shadow-lg transition cursor-grab flex items-center gap-3"
+                          className="p-3 mt-4 bg-white dark:bg-gray-700 rounded-lg shadow mb-2 hover:shadow-lg transition cursor-grab flex items-center gap-3"
                         >
                           <img
-                            src={card.image ||DEFAULT_AVATAR}
+                            src={card.image || DEFAULT_AVATAR}
                             alt={card.name}
                             className="w-8 h-8 rounded-full object-cover"
                           />
-                          <p className="text-sm">{card.name.split(" ")[0]}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-200">{card.name.split(" ")[0]}</p>
                         </div>
                       )}
                     </Draggable>

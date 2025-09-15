@@ -72,8 +72,8 @@ export default function Jobs() {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-800 min-h-screen transition-colors duration-300">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
         Jobs
       </h2>
 
@@ -82,12 +82,12 @@ export default function Jobs() {
         <input
           type="text"
           placeholder="Search title..."
-          className="border px-3 py-1 rounded-3xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+          className="border px-3 py-1 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          className="border px-6 py-1 rounded-3xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+          className="border px-6 py-1 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -99,7 +99,7 @@ export default function Jobs() {
         <input
           type="text"
           placeholder="Filter by tag..."
-          className="border px-3 py-2 rounded-3xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+          className="border px-3 py-2 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
         />
@@ -117,7 +117,7 @@ export default function Jobs() {
         {jobs.map((job) => (
           <div
             key={job.id}
-            className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between border border-gray-200 dark:border-gray-700"
+            className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between border border-gray-200 dark:border-gray-700"
           >
             <div>
               <h3
@@ -134,7 +134,7 @@ export default function Jobs() {
                   {job.tags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full px-2 py-1"
+                      className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-full px-2 py-1"
                     >
                       {tag}
                     </span>
@@ -184,7 +184,7 @@ export default function Jobs() {
         >
           Previous
         </button>
-        <span className="text-gray-800 dark:text-gray-300">
+        <span className="text-gray-900 dark:text-gray-300">
           Page {page} of {totalPages}
         </span>
         <button

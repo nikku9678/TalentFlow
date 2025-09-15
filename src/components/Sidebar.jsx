@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="w-64 border-r hidden md:flex flex-col bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <aside className="w-64 border-r hidden md:flex flex-col bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="p-6 text-2xl font-bold text-black dark:text-white transition-colors duration-300">
           TalentFlow
         </div>
@@ -53,7 +53,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
         {/* Panel */}
         <div
-          className={`relative w-64 h-full bg-white dark:bg-gray-800 shadow-xl transform transition-transform transition-colors duration-300 ${
+          className={`relative w-64 h-full bg-white dark:bg-gray-900 shadow-xl transform transition-transform transition-colors duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >

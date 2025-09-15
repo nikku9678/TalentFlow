@@ -44,7 +44,7 @@ export default function Candidates() {
   const totalPages = Math.ceil(total / pageSize)
 
   return (
-    <div className="p-6 dark:bg-gray-800 dark:text-white">
+    <div className="p-6 dark:bg-gray-900 dark:text-white">
       <div className="min-h-screen">
         <h2 className="text-2xl font-bold mb-6 text-start">Candidates</h2>
 
@@ -60,7 +60,7 @@ export default function Candidates() {
             setSearch(e.target.value)
             setPage(1)
           }}
-          className="w-full md:w-1/2 dark:bg-gray-800 dark:text-white px-4 py-2 border rounded-3xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+          className="w-full md:w-1/2 dark:bg-gray-900 dark:text-white px-4 py-2 border rounded-3xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
         />
         <select
           value={stageFilter}

@@ -9,7 +9,7 @@ export default function Navbar({ onOpenSidebar }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="w-full border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-colors duration-300">
+    <header className="w-full border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         {/* Left: Logo (Mobile only) */}
         <div className="flex items-center gap-2 md:hidden">
@@ -23,7 +23,7 @@ export default function Navbar({ onOpenSidebar }) {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
+            className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
           />
         </div>
 
@@ -61,7 +61,7 @@ export default function Navbar({ onOpenSidebar }) {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 transition-colors duration-300">
+                <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 transition-colors duration-300">
                   <Link
                     to="/profile"
                     className="block px-4 py-2 text-sm text-black dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"

@@ -57,9 +57,9 @@ export default function AssessmentModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-auto">
-      <div className="bg-white rounded-lg w-full max-w-4xl p-6 relative">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl p-6 relative text-gray-900 dark:text-gray-200 transition-colors duration-300">
         <button
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+          className="absolute top-2 right-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           onClick={onClose}
         >
           ✕
@@ -69,22 +69,20 @@ export default function AssessmentModal({
           {isViewMode ? "View Assessment" : isEditMode ? "Edit Assessment" : "Create Assessment"}
         </h3>
 
-        {/* Title */}
         <input
           type="text"
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full border dark:border-gray-600 rounded px-3 py-2 mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           placeholder="Assessment Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={isViewMode}
         />
 
-        {/* Sections */}
         {sections.map((s, sIdx) => (
-          <div key={sIdx} className="mb-4 border p-3 rounded">
+          <div key={sIdx} className="mb-4 border dark:border-gray-600 p-3 rounded">
             <input
               type="text"
-              className="w-full border rounded px-2 py-1 mb-2"
+              className="w-full border dark:border-gray-600 rounded px-2 py-1 mb-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
               placeholder={`Section ${sIdx + 1} Title`}
               value={s.title}
               onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
@@ -95,7 +93,7 @@ export default function AssessmentModal({
               <div key={qIdx} className="flex gap-2 mb-1">
                 <input
                   type="text"
-                  className="flex-1 border rounded px-2 py-1"
+                  className="flex-1 border dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                   placeholder="Question label"
                   value={q.label}
                   onChange={(e) => updateQuestion(sIdx, qIdx, "label", e.target.value)}
@@ -104,7 +102,7 @@ export default function AssessmentModal({
                 <select
                   value={q.type}
                   onChange={(e) => updateQuestion(sIdx, qIdx, "type", e.target.value)}
-                  className="border rounded px-2 py-1"
+                  className="border dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                   disabled={isViewMode}
                 >
                   <option value="single">Single Choice</option>
@@ -119,7 +117,7 @@ export default function AssessmentModal({
 
             {!isViewMode && (
               <button
-                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mt-2"
+                className="px-3 py-1 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-500 mt-2 transition"
                 onClick={() => addQuestion(sIdx)}
               >
                 + Add Question
@@ -130,15 +128,14 @@ export default function AssessmentModal({
 
         {!isViewMode && (
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
             onClick={addSection}
           >
             + Add Section
           </button>
         )}
 
-        {/* Live Preview */}
-        <div className="mt-6 border-t pt-4">
+        <div className="mt-6 border-t dark:border-gray-600 pt-4">
           <h4 className="font-bold mb-2">Live Preview</h4>
           {(sections || []).map((s, idx) => (
             <div key={idx} className="mb-3">
@@ -156,7 +153,7 @@ export default function AssessmentModal({
 
         {!isViewMode && (
           <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="mt-4 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
             onClick={handleSaveClick}
           >
             Save Assessment

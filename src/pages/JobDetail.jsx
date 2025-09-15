@@ -53,25 +53,18 @@ export default function JobDetail() {
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this job?")) {
-      await db.jobs.delete(job.id);
-      navigate("/jobs");
-    }
-  };
-
   return (
-    <div className="p-4 lg:p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 lg:p-6 max-w-full mx-auto space-y-6 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300">
       {/* Back button */}
-      <button
+      {/* <button
         onClick={() => navigate(-1)}
-        className="mb-4 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+        className="mb-4 px-3 py-1 bg-gray-200 dark:bg-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-700 transition"
       >
         ← Back
-      </button>
+      </button> */}
 
       {/* Job Header */}
-      <div className="bg-white p-6 rounded-lg shadow space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors duration-300 space-y-4">
         <h2 className="text-2xl font-bold">{job.title}</h2>
 
         <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -84,17 +77,17 @@ export default function JobDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors duration-300">
         {/* Tab Headers */}
-        <div className="flex border-b mb-4 overflow-x-auto">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
+              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-300 ${
                 activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-blue-600"
+                  ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
               }`}
             >
               {tab}
@@ -103,74 +96,34 @@ export default function JobDetail() {
         </div>
 
         {/* Tab Content */}
-        <div className="text-gray-700 space-y-3">
+        <div className="text-gray-700 dark:text-gray-200 space-y-3 transition-colors duration-300">
           {activeTab === "Job Description" && (
-            <div>
-              <h3 className="font-semibold">About this Job</h3>
-             <div className="mt-2 space-y-3">
-  <p>
-    {job.description ||
-      "We are looking for a passionate Software Engineer to join our dynamic team and work on building scalable applications."}
-  </p>
-
-  <h4 className="font-semibold mt-4">Responsibilities:</h4>
-  <ul className="list-disc list-inside space-y-1">
-    <li>Design, develop, and maintain web applications using React & Node.js.</li>
-    <li>Collaborate with cross-functional teams to define and deliver new features.</li>
-    <li>Write clean, efficient, and testable code following best practices.</li>
-    <li>Troubleshoot, debug, and optimize performance for existing applications.</li>
-    <li>Contribute to technical discussions and propose innovative solutions.</li>
-  </ul>
-
-  <h4 className="font-semibold mt-4">Requirements:</h4>
-  <ul className="list-disc list-inside space-y-1">
-    <li>Bachelor’s degree in Computer Science or related field.</li>
-    <li>Strong proficiency in JavaScript, React, and Node.js.</li>
-    <li>Familiarity with REST APIs and database technologies (MySQL/MongoDB).</li>
-    <li>Good understanding of version control (Git).</li>
-    <li>Excellent problem-solving skills and attention to detail.</li>
-  </ul>
-
-  <h4 className="font-semibold mt-4">Perks:</h4>
-  <ul className="list-disc list-inside space-y-1">
-    <li>Competitive salary and performance-based bonuses.</li>
-    <li>Flexible work hours with hybrid options.</li>
-    <li>Health insurance and wellness programs.</li>
-    <li>Learning & development budget for certifications and courses.</li>
-    <li>Fun team outings and hackathons.</li>
-  </ul>
-</div>
-
-
-              {job.requirements && (
-                <div className="mt-4">
-                  <h4 className="font-semibold">Requirements</h4>
-                  <ul className="list-disc list-inside mt-1">
-                    {job.requirements.map((req, i) => <li key={i}>{req}</li>)}
-                  </ul>
-                  
-                </div>
-              )}
-
-              {job.skills && (
-                <div className="mt-4">
-                  <h4 className="font-semibold">Skills</h4>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {job.skills.map((skill, i) => (
-                      <span key={i} className="px-3 py-1 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="space-y-4">
+              <p>
+                {job.description || "We are looking for a passionate Software Engineer to join our dynamic team."}
+              </p>
+              <h4 className="font-semibold">Responsibilities:</h4>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Design, develop, and maintain web applications using React & Node.js.</li>
+                <li>Collaborate with cross-functional teams to define and deliver new features.</li>
+                <li>Write clean, efficient, and testable code following best practices.</li>
+                <li>Troubleshoot, debug, and optimize performance for existing applications.</li>
+                <li>Contribute to technical discussions and propose innovative solutions.</li>
+              </ul>
+              <h4 className="font-semibold">Requirements:</h4>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Bachelor’s degree in Computer Science or related field.</li>
+                <li>Strong proficiency in JavaScript, React, and Node.js.</li>
+                <li>Familiarity with REST APIs and databases (MySQL/MongoDB).</li>
+                <li>Good understanding of version control (Git).</li>
+                <li>Excellent problem-solving skills and attention to detail.</li>
+              </ul>
             </div>
           )}
 
           {activeTab === "Dates & Deadlines" && (
             <div>
-              <h3 className="font-semibold">Important Dates</h3>
-              <ul className="list-disc list-inside mt-2">
+              <ul className="list-disc list-inside space-y-1">
                 <li>Application Open: {job.startDate || "20 Oct 2025"}</li>
                 <li>Application Deadline: {job.deadline || "15 Nov 2025"}</li>
                 <li>Interview Rounds: Last week of Nov 2025</li>
@@ -180,35 +133,29 @@ export default function JobDetail() {
           )}
 
           {activeTab === "Reviews" && (
-            <div>
-              <h3 className="font-semibold">What candidates say</h3>
-              <div className="space-y-3 mt-2">
-                <div className="p-3 border rounded">
-                  ⭐⭐⭐⭐ Great learning culture, but workload can be high.
-                </div>
-                <div className="p-3 border rounded">
-                  ⭐⭐⭐⭐⭐ Supportive mentors and good exposure to real projects.
-                </div>
+            <div className="space-y-3">
+              <div className="p-3 border border-gray-200 dark:border-gray-700 rounded">
+                ⭐⭐⭐⭐ Great learning culture, but workload can be high.
+              </div>
+              <div className="p-3 border border-gray-200 dark:border-gray-700 rounded">
+                ⭐⭐⭐⭐⭐ Supportive mentors and good exposure to real projects.
               </div>
             </div>
           )}
 
           {activeTab === "FAQs & Discussions" && (
-            <div>
-              <h3 className="font-semibold">Frequently Asked Questions</h3>
-              <div className="mt-2 space-y-3">
-                <div>
-                  <p className="font-medium">Q: Is this role remote or in-office?</p>
-                  <p className="text-sm text-gray-600">A: It’s {job.type || "In-Office"}.</p>
-                </div>
-                <div>
-                  <p className="font-medium">Q: What is the expected salary?</p>
-                  <p className="text-sm text-gray-600">A: {job.package || "₹4-6 LPA"}.</p>
-                </div>
-                <div>
-                  <p className="font-medium">Q: Do freshers qualify?</p>
-                  <p className="text-sm text-gray-600">A: Yes, experience range is {job.experience || "0-3 years"}.</p>
-                </div>
+            <div className="space-y-3">
+              <div>
+                <p className="font-medium">Q: Is this role remote or in-office?</p>
+                <p>A: It’s {job.type || "In-Office"}.</p>
+              </div>
+              <div>
+                <p className="font-medium">Q: What is the expected salary?</p>
+                <p>A: {job.package || "₹4-6 LPA"}.</p>
+              </div>
+              <div>
+                <p className="font-medium">Q: Do freshers qualify?</p>
+                <p>A: Yes, experience range is {job.experience || "0-3 years"}.</p>
               </div>
             </div>
           )}
@@ -226,8 +173,10 @@ export default function JobDetail() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-4 rounded-lg min-h-[100px] transition-colors ${
-                      snapshot.isDraggingOver ? "bg-blue-100" : "bg-gray-50 border border-gray-200"
+                    className={`p-4 rounded-lg min-h-[100px] transition-colors duration-300 border ${
+                      snapshot.isDraggingOver
+                        ? "bg-blue-100 dark:bg-blue-900"
+                        : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                     }`}
                   >
                     <h4 className="font-semibold capitalize mb-2">{status}</h4>
@@ -238,25 +187,9 @@ export default function JobDetail() {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="bg-white p-3 rounded shadow mb-2"
+                            className="bg-white dark:bg-gray-700 p-3 rounded shadow mb-2 transition-colors duration-300"
                           >
-                            <div className="flex justify-between items-center">
-                              <span>{job.title}</span>
-                              <div className="flex gap-1">
-                                {/* <button
-                                  className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
-                                  onClick={() => setShowJobModal(true)}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
-                                  onClick={handleDelete}
-                                >
-                                  Delete
-                                </button> */}
-                              </div>
-                            </div>
+                            {job.title}
                           </div>
                         )}
                       </Draggable>
@@ -270,13 +203,13 @@ export default function JobDetail() {
         </DragDropContext>
       </div>
 
-      {/* Integrated Assessment Builder */}
-      <div className="bg-white p-6 rounded-lg shadow space-y-4">
+      {/* Assessment Builder */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors duration-300 space-y-4">
         <h3 className="text-xl font-semibold">Assessments for this Job</h3>
         <AssessmentBuilder jobId={id} />
       </div>
 
-      {/* Job Edit Modal */}
+      {/* Job Modal */}
       {showJobModal && (
         <JobModal
           job={job}
