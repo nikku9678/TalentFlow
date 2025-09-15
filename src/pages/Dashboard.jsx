@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { ArrowUpRight } from "lucide-react";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -56,9 +57,14 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">Welcome to TalentFlow Dashboard</h1>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-lg font-semibold">Total Candidates</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
+        <div className="bg-white shadow rounded p-8 bg-gradient-to-r from-yellow-100 to-yellow-50 p-8 text-black">
+          <div className="flex justify-between">
+            <h2 className="text-lg font-semibold">Total Candidates</h2>
+            <span className=" bg-yellow-200 rounded-full p-3">
+              <ArrowUpRight/>
+            </span>
+          </div>
           <p className="text-2xl font-bold">{totalCandidates}</p>
         </div>
 

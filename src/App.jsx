@@ -12,29 +12,35 @@ import CandidateProfile from "./pages/CandidateProfile"
 import JobDetail from "./pages/JobDetail"
 
 export default function App() {
-  // controls mobile sidebar visibility
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
     <Router>
-      <div className="flex h-screen">
-        {/* Sidebar: pass open/close state */}
-        {/* <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} /> */}
+      <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-green-50 to-gray-100 text-black">
+        {/* Sidebar: hidden on mobile, visible on lg */}
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-        {/* Main Content */}
-        <div className="flex flex-col flex-1">
-          {/* Navbar gets a prop to open sidebar */}
-          <Navbar onOpenModal={() => setIsModalOpen(true)} onOpenSidebar={() => setSidebarOpen(true)} />
+        {/* Main area */}
+        <div className="flex-1 flex flex-col">
+          {/* Navbar always on top */}
+          <Navbar
+            onOpenModal={() => setIsModalOpen(true)}
+            onOpenSidebar={() => setSidebarOpen(true)}
+          />
 
+          {/* Content */}
           <main className="flex-1 p-4 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/candidates" element={<Candidates />} />
               <Route path="/assessments" element={<Assessments />} />
-               <Route path="/candidates/:id" element={<CandidateProfile />} />
-                <Route path="/job/:id" element={<JobDetail />} />
+              <Route path="/candidates/:id" element={<CandidateProfile />} />
+              <Route path="/job/:id" element={<JobDetail />} />
             </Routes>
           </main>
         </div>
