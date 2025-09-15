@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="w-64 border-r hidden md:flex flex-col dark:bg-gray-800 dark:border-gray-800 transition-colors duration-300">
+      <aside className="w-64 border-r hidden md:flex flex-col bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="p-6 text-2xl font-bold text-black dark:text-white transition-colors duration-300">
           TalentFlow
         </div>
@@ -23,7 +23,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
             <Link
               key={link.to}
               to={link.to}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
                 pathname === link.to
                   ? "bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold"
                   : "text-black dark:text-gray-200"
@@ -57,13 +57,13 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="p-4 flex items-center justify-between border-b dark:border-gray-800 transition-colors duration-300">
+          <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
             <div className="text-lg font-bold text-black dark:text-white transition-colors duration-300">
               TalentFlow
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300"
+              className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300"
               aria-label="Close sidebar"
             >
               <X size={18} />
@@ -76,7 +76,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 key={link.to}
                 to={link.to}
                 onClick={onClose}
-                className={`flex items-center gap-2 p-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                className={`flex items-center gap-2 p-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
                   pathname === link.to
                     ? "bg-gray-200 dark:bg-gray-700 font-semibold"
                     : "text-black dark:text-gray-200"

@@ -54,10 +54,10 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Welcome to TalentFlow Dashboard</h1>
+      <h1 className="text-3xl font-bold p-2">Welcome to TalentFlow Dashboard</h1>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 ">
         <div className="bg-white shadow rounded p-8 bg-gradient-to-r from-yellow-100 to-yellow-50 p-8 text-black">
           <div className="flex justify-between">
             <h2 className="text-lg font-semibold">Total Candidates</h2>

@@ -3,19 +3,19 @@ import { UserIcon } from "lucide-react" // icon for avatar
 
 export default function CandidateCard({ candidate }) {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
+    <div className="p-6 dark:bg-gray-700 dark:text-white rounded-2xl shadow-md hover:shadow-lg transition">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
           <UserIcon size={24} />
         </div>
-        <div>
+        <div className="ml-2">
           <Link
             to={`/candidates/${candidate.id}`}
-            className="text-md font-semibold text-blue-600 hover:underline"
+            className="text-md font-semibold text-white hover:underline"
           >
             {candidate.name}
           </Link>
-          <p className="text-gray-600 text-sm">{candidate.email}</p>
+          <p className="text-gray-600 dark:text-white text-sm">{candidate.email}</p>
         </div>
       </div>
       <span

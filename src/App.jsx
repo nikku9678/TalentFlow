@@ -33,7 +33,7 @@ export default function App() {
           />
 
           {/* Content */}
-          <main className="flex-1 p-4 overflow-y-auto">
+<main className="flex-1 overflow-y-auto dark:border-1 dark:border-gray-800 dark:bg-red-800 dark:text-white">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/jobs" element={<Jobs />} />

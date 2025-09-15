@@ -41,10 +41,10 @@ export default function CandidateProfile() {
   if (!candidate) return <p className="p-6">Loading candidate...</p>;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 dark:bg-gray-800 dark:text-white">
       {/* Candidate Info */}
-      <div className="flex justify-between items-center px-4 bg-gray-100">
-      <div className="mb-6 flex items-center gap-4 p-4">
+      <div className="flex justify-between  items-center dark:bg-gray-800 shadow dark:border-gray-100 dark:border-1 dark:text-white px-4 bg-gray-100">
+      <div className="mb-6 flex items-center gap-4 p-4 dark:border-gray-700">
         <img
           src={candidate.image || DEFAULT_AVATAR}
           alt={candidate.name}
