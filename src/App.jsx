@@ -10,6 +10,8 @@ import { useState } from "react"
 import CreateJobModal from "./components/CreateJobModal"
 import CandidateProfile from "./pages/CandidateProfile"
 import JobDetail from "./pages/JobDetail"
+import AssessmentBuilder from "./components/AssessmentBuilder"
+import AssessmentView from "./components/assessment/AssessmentView"
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -41,6 +43,9 @@ export default function App() {
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/candidates/:id" element={<CandidateProfile />} />
               <Route path="/job/:id" element={<JobDetail />} />
+             <Route path="/assessment/create/:id" element={<AssessmentBuilder />} />
+  <Route path="/assessment/edit/:id" element={<AssessmentBuilder mode="edit" />} />
+  <Route path="/assessment/view/:id" element={<AssessmentView />} />
             </Routes>
           </main>
         </div>

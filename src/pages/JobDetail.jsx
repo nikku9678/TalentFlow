@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { db } from "../db/db";
 import AssessmentBuilder from "../components/AssessmentBuilder";
@@ -204,10 +204,17 @@ export default function JobDetail() {
       </div>
 
       {/* Assessment Builder */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors duration-300 space-y-4">
-        <h3 className="text-xl font-semibold">Assessments for this Job</h3>
-        <AssessmentBuilder jobId={id} />
-      </div>
+     <div className="bg-white dark:bg-gray-800 flex flex-col md:flex-row justify-between items-center p-6 rounded-lg shadow transition-colors duration-300 gap-4">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Assessments for this Job
+      </h3>
+      <Link
+        to={`/assessment/create/${id}`}
+        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-3xl hover:bg-blue-700 dark:hover:bg-blue-600 transition w-full md:w-auto text-center"
+      >
+        + Create Assessment
+      </Link>
+    </div>
 
       {/* Job Modal */}
       {showJobModal && (

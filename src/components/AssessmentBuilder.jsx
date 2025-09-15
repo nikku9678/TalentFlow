@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/db";
+import { useParams, useNavigate } from "react-router-dom";
 
 const QUESTION_TYPES = [
   "single-choice",
@@ -10,232 +11,296 @@ const QUESTION_TYPES = [
   "file",
 ];
 
-export default function AssessmentBuilder({ jobId }) {
-  const [assessments, setAssessments] = useState([]);
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [editingAssessment, setEditingAssessment] = useState(null);
-
+export default function AssessmentBuilder({ mode = "create" }) {
+  const navigate = useNavigate();
+  const { id, id: jobId } = useParams(); // `id` = assessmentId for edit, `jobId` for create
   const [title, setTitle] = useState("");
-  const [sections, setSections] = useState([
-    { title: "Section 1", questions: [{ type: "short-text", label: "", required: true, choices: [] }] },
-  ]);
+  const [sections, setSections] = useState([{ title: "", questions: [] }]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch assessments per job
+  // Load data if editing
   useEffect(() => {
-    async function fetchAssessments() {
-      const data = await db.assessments.where("jobId").equals(Number(jobId)).toArray();
-      setAssessments(data);
+    if (mode === "edit" && id) {
+      async function fetchAssessment() {
+        setLoading(true);
+        const existing = await db.assessments.get(Number(id));
+        if (existing) {
+          setTitle(existing.title);
+          setSections(existing.sections || [{ title: "", questions: [] }]);
+        }
+        setLoading(false);
+      }
+      fetchAssessment();
     }
-    fetchAssessments();
-  }, [jobId]);
+  }, [mode, id]);
 
-  // Add new section
-  const addSection = () => {
-    setSections([...sections, { title: `Section ${sections.length + 1}`, questions: [{ type: "short-text", label: "", required: true, choices: [] }] }]);
-  };
+  // --- Section methods ---
+  const addSection = () => setSections([...sections, { title: "", questions: [] }]);
 
-  // Add new question in section
-  const addQuestion = (sectionIndex) => {
+  const deleteSection = (sIdx) =>
+    setSections(sections.filter((_, i) => i !== sIdx));
+
+  const updateSectionTitle = (sIdx, value) => {
     const newSections = [...sections];
-    newSections[sectionIndex].questions.push({ type: "short-text", label: "", required: true, choices: [] });
+    newSections[sIdx].title = value;
     setSections(newSections);
   };
 
-  // Handle question change
-  const handleQuestionChange = (sectionIndex, questionIndex, key, value) => {
+  // --- Question methods ---
+  const addQuestion = (sIdx) => {
+    const newSections = [...sections];
+    newSections[sIdx].questions.push({
+      label: "",
+      type: "short-text",
+      choices: [],
+    });
+    setSections(newSections);
+  };
+
+  const deleteQuestion = (sIdx, qIdx) => {
+    const newSections = [...sections];
+    newSections[sIdx].questions.splice(qIdx, 1);
+    setSections(newSections);
+  };
+
+  const updateQuestion = (sIdx, qIdx, key, value) => {
     const newSections = [...sections];
     if (key === "choices") {
-      newSections[sectionIndex].questions[questionIndex][key] = value.split(",").map((v) => v.trim());
+      newSections[sIdx].questions[qIdx][key] = value.split(",").map((v) => v.trim());
     } else {
-      newSections[sectionIndex].questions[questionIndex][key] = value;
+      newSections[sIdx].questions[qIdx][key] = value;
     }
     setSections(newSections);
   };
 
-  // Handle section title change
-  const handleSectionTitleChange = (sectionIndex, value) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].title = value;
-    setSections(newSections);
+  // --- Validation ---
+  const validateAssessment = () => {
+    if (!title.trim()) return "Assessment title is required";
+
+    const totalQuestions = sections.reduce(
+      (acc, s) => acc + s.questions.length,
+      0
+    );
+    if (totalQuestions < 1) return "Minimum 1 question required";
+
+    for (let s of sections) {
+      for (let q of s.questions) {
+        if (!q.label.trim()) return "All questions must have a label";
+        if (
+          ["single-choice", "multi-choice"].includes(q.type) &&
+          q.choices.length === 0
+        ) {
+          return "All choice questions must have at least one option";
+        }
+      }
+    }
+    return null;
   };
 
-  // Delete question
-  const deleteQuestion = (sectionIndex, questionIndex) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].questions.splice(questionIndex, 1);
-    setSections(newSections);
-  };
-
-  // Delete section
-  const deleteSection = (sectionIndex) => {
-    const newSections = [...sections];
-    newSections.splice(sectionIndex, 1);
-    setSections(newSections);
-  };
-
-  // Save assessment
+  // --- Save / Update ---
   const saveAssessment = async () => {
-    if (!title.trim()) return alert("Assessment title is required");
-    if (sections.some(s => s.questions.some(q => !q.label.trim()))) return alert("All questions must have a label");
-
-    const assessmentObj = {
-      jobId: Number(jobId),
-      title,
-      sections,
-      createdAt: new Date().toISOString(),
-    };
+    const error = validateAssessment();
+    if (error) return alert(error);
 
     try {
-      let id;
-      if (editingAssessment) {
-        await db.assessments.update(editingAssessment.id, assessmentObj);
-        id = editingAssessment.id;
+      if (mode === "edit" && id) {
+        await db.assessments.update(Number(id), {
+          title,
+          sections,
+          updatedAt: new Date().toISOString(),
+        });
+        alert("Assessment updated successfully!");
       } else {
-        id = await db.assessments.add(assessmentObj);
+        await db.assessments.add({
+          jobId: Number(jobId),
+          title,
+          sections,
+          createdAt: new Date().toISOString(),
+        });
+        alert("Assessment created successfully!");
       }
-      setAssessments(await db.assessments.where("jobId").equals(Number(jobId)).toArray());
-
-      // Reset form
-      setTitle("");
-      setSections([{ title: "Section 1", questions: [{ type: "short-text", label: "", required: true, choices: [] }] }]);
-      setEditingAssessment(null);
-      setShowBuilder(false);
+      navigate("/assessments"); // back to list page
     } catch (err) {
       console.error(err);
       alert("Failed to save assessment");
     }
   };
 
-  // Edit assessment
-  const editAssessment = (assessment) => {
-    setEditingAssessment(assessment);
-    setTitle(assessment.title);
-    setSections(assessment.sections);
-    setShowBuilder(true);
-  };
-
-  // Delete assessment
-  const deleteAssessment = async (id) => {
-    if (!window.confirm("Are you sure to delete this assessment?")) return;
-    await db.assessments.delete(id);
-    setAssessments(await db.assessments.where("jobId").equals(Number(jobId)).toArray());
-  };
+  if (loading) return <p className="p-6">Loading assessment...</p>;
 
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => setShowBuilder(!showBuilder)}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        {showBuilder ? "Cancel" : editingAssessment ? "Edit Assessment" : "Create Assessment"}
-      </button>
-
-      {showBuilder && (
-        <div className="p-4 border rounded-lg bg-gray-50 space-y-4">
+    <div className="min-h-screen p-4 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+        {/* LEFT: Builder */}
+        <div className="flex-1 space-y-4">
+          {/* Title */}
           <input
             type="text"
+            placeholder="Enter Assessment Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Assessment Title"
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-gray-100"
           />
 
+          {/* Sections */}
           {sections.map((section, sIdx) => (
-            <div key={sIdx} className="border p-3 rounded space-y-2 bg-white">
+            <div
+              key={sIdx}
+              className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow space-y-3"
+            >
               <div className="flex justify-between items-center">
                 <input
                   type="text"
                   value={section.title}
-                  onChange={(e) => handleSectionTitleChange(sIdx, e.target.value)}
-                  placeholder="Section Title"
-                  className="w-full border rounded px-2 py-1"
+                  onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
+                  placeholder={`Section ${sIdx + 1} Title (Optional)`}
+                  className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-gray-100"
                 />
-                <button onClick={() => deleteSection(sIdx)} className="ml-2 text-red-600 font-bold">X</button>
+                <button
+                  onClick={() => deleteSection(sIdx)}
+                  className="ml-2 text-red-600 font-bold"
+                >
+                  X
+                </button>
               </div>
 
+              {/* Questions */}
               {section.questions.map((q, qIdx) => (
-                <div key={qIdx} className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={q.label}
-                    onChange={(e) => handleQuestionChange(sIdx, qIdx, "label", e.target.value)}
-                    placeholder="Question label"
-                    className="flex-1 border rounded px-2 py-1"
-                  />
-                  <select
-                    value={q.type}
-                    onChange={(e) => handleQuestionChange(sIdx, qIdx, "type", e.target.value)}
-                    className="border rounded px-2 py-1"
-                  >
-                    {QUESTION_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                  {["single-choice","multi-choice"].includes(q.type) && (
+                <div
+                  key={qIdx}
+                  className="border p-3 rounded-lg space-y-2 bg-gray-50 dark:bg-gray-700"
+                >
+                  <div className="flex flex-col md:flex-row gap-2 items-start">
                     <input
                       type="text"
-                      value={q.choices.join(", ")}
-                      onChange={(e) => handleQuestionChange(sIdx, qIdx, "choices", e.target.value)}
-                      placeholder="Choices comma-separated"
-                      className="border rounded px-2 py-1"
+                      value={q.label}
+                      onChange={(e) =>
+                        updateQuestion(sIdx, qIdx, "label", e.target.value)
+                      }
+                      placeholder="Enter question label"
+                      className="flex-1 px-2 py-1 border rounded-lg dark:bg-gray-600 dark:text-gray-100"
                     />
+                    <select
+                      value={q.type}
+                      onChange={(e) =>
+                        updateQuestion(sIdx, qIdx, "type", e.target.value)
+                      }
+                      className="px-2 py-1 border rounded-lg dark:bg-gray-600 dark:text-gray-100"
+                    >
+                      {QUESTION_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => deleteQuestion(sIdx, qIdx)}
+                      className="text-red-600 font-bold"
+                    >
+                      X
+                    </button>
+                  </div>
+
+                  {["single-choice", "multi-choice"].includes(q.type) && (
+                    <div className="flex flex-col gap-1">
+                      {q.choices.map((opt, oIdx) => (
+                        <input
+                          key={oIdx}
+                          type="text"
+                          value={opt}
+                          onChange={(e) => {
+                            const newChoices = [...q.choices];
+                            newChoices[oIdx] = e.target.value;
+                            updateQuestion(
+                              sIdx,
+                              qIdx,
+                              "choices",
+                              newChoices.join(",")
+                            );
+                          }}
+                          placeholder={`Option ${oIdx + 1}`}
+                          className="px-2 py-1 border rounded-lg dark:bg-gray-600 dark:text-gray-100"
+                        />
+                      ))}
+                      <button
+                        onClick={() =>
+                          updateQuestion(
+                            sIdx,
+                            qIdx,
+                            "choices",
+                            [...q.choices, ""].join(",")
+                          )
+                        }
+                        className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm"
+                      >
+                        + Add Option
+                      </button>
+                    </div>
                   )}
-                  <button onClick={() => deleteQuestion(sIdx, qIdx)} className="text-red-600 font-bold">X</button>
                 </div>
               ))}
-              <button onClick={() => addQuestion(sIdx)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition mt-1">+ Add Question</button>
+
+              <button
+                onClick={() => addQuestion(sIdx)}
+                className="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition"
+              >
+                + Add Question
+              </button>
             </div>
           ))}
 
-          <button onClick={addSection} className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition">+ Add Section</button>
+          {/* Add Section */}
+          <button
+            onClick={addSection}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition"
+          >
+            + Add Section
+          </button>
 
-          {/* Live preview */}
-          <div className="mt-4 p-4 border rounded-lg bg-gray-100">
-            <h3 className="font-bold mb-2">Live Preview</h3>
-            {sections.map((s, sIdx) => (
-              <div key={sIdx} className="mb-2">
-                <h4 className="font-semibold">{s.title}</h4>
-                <div className="space-y-1">
-                  {s.questions.map((q, qIdx) => (
-                    <div key={qIdx}>
-                      <label className="block text-gray-700">{q.label}</label>
-                      {q.type === "short-text" && <input className="border rounded px-2 py-1 w-full" type="text" />}
-                      {q.type === "long-text" && <textarea className="border rounded px-2 py-1 w-full" rows={3}></textarea>}
-                      {q.type === "numeric" && <input className="border rounded px-2 py-1 w-full" type="number" />}
-                      {q.type === "file" && <input className="border rounded px-2 py-1 w-full" type="file" disabled />}
-                      {q.type === "single-choice" && q.choices.map((c, i) => (
-                        <div key={i}><input type="radio" name={`q${sIdx}-${qIdx}`} /> {c}</div>
-                      ))}
-                      {q.type === "multi-choice" && q.choices.map((c, i) => (
-                        <div key={i}><input type="checkbox" /> {c}</div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <button onClick={saveAssessment} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition mt-2">
-            {editingAssessment ? "Update Assessment" : "Save Assessment"}
+          {/* Save Button */}
+          <button
+            onClick={saveAssessment}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-lg transition w-full mt-4"
+          >
+            {mode === "edit" ? "Update Assessment" : "Create Assessment"}
           </button>
         </div>
-      )}
 
-      {/* List of saved assessments */}
-      <div className="space-y-4">
-        {assessments.map(a => (
-          <div key={a.id} className="p-4 border rounded bg-white flex justify-between items-center">
-            <div>
-              <h4 className="font-bold">{a.title}</h4>
-              <p className="text-sm text-gray-500">{a.sections?.length || 0} sections</p>
+        {/* RIGHT: Live Preview */}
+        <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+          <h2 className="text-xl font-bold mb-4">Live Preview</h2>
+          {title && <h3 className="text-lg font-semibold mb-4">{title}</h3>}
+          {sections.map((s, sIdx) => (
+            <div key={sIdx} className="mb-6">
+              {s.title && <h4 className="font-semibold mb-2">{s.title}</h4>}
+              {s.questions.map((q, qIdx) => (
+                <div key={qIdx} className="mb-4">
+                  <p className="font-medium mb-2">
+                    {qIdx + 1}. {q.label}
+                  </p>
+                  {q.type === "short-text" && <input type="text" className="w-full border rounded px-2 py-1" />}
+                  {q.type === "long-text" && <textarea rows={3} className="w-full border rounded px-2 py-1" />}
+                  {q.type === "numeric" && <input type="number" className="w-full border rounded px-2 py-1" />}
+                  {q.type === "file" && <input type="file" disabled className="w-full border rounded px-2 py-1 cursor-not-allowed" />}
+                  {q.type === "single-choice" &&
+                    q.choices.map((c, i) => (
+                      <label key={i} className="flex items-center gap-2">
+                        <input type="radio" name={`q${sIdx}-${qIdx}`} />
+                        {c}
+                      </label>
+                    ))}
+                  {q.type === "multi-choice" &&
+                    q.choices.map((c, i) => (
+                      <label key={i} className="flex items-center gap-2">
+                        <input type="checkbox" />
+                        {c}
+                      </label>
+                    ))}
+                </div>
+              ))}
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => editAssessment(a)} className="px-2 py-1 bg-yellow-400 rounded hover:bg-yellow-500">Edit</button>
-              <button onClick={() => deleteAssessment(a.id)} className="px-2 py-1 bg-red-500 rounded hover:bg-red-600 text-white">Delete</button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

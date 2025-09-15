@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { db } from "../db/db";
-import AssessmentModal from "../components/assessment/AssessmentModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Assessments() {
+  const navigate = useNavigate();
   const [assessments, setAssessments] = useState([]);
   const [jobs, setJobs] = useState([]);
-  const [modalProps, setModalProps] = useState({ show: false, mode: "create", assessment: null });
 
   useEffect(() => {
     async function fetchData() {
@@ -24,39 +24,25 @@ export default function Assessments() {
     }
   };
 
-  const openModal = (mode = "create", assessment = null) => {
-    setModalProps({ show: true, mode, assessment });
-  };
-
-  const handleSave = async (payload) => {
-    if (modalProps.mode === "edit") {
-      await db.assessments.put(payload);
-      setAssessments(assessments.map((a) => (a.id === payload.id ? payload : a)));
-    } else {
-      const id = await db.assessments.add(payload);
-      setAssessments([...assessments, { ...payload, id }]);
-    }
-    setModalProps({ ...modalProps, show: false });
-  };
-
   return (
     <div className="min-h-screen p-6 max-w-full mx-auto space-y-6 dark:bg-gray-900 dark:text-gray-200">
-      <div className="flex justify-between p-4 ">
+      <div className="flex justify-between p-4">
         <h2 className="text-2xl font-bold">Assessments</h2>
-
-      <button
-        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-3xl hover:bg-blue-700 dark:hover:bg-blue-600 transition"
-        onClick={() => openModal("create")}
-      >
-        + Create Assessment
-      </button>
+        <button
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-3xl hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+          onClick={() => navigate("/assessment/create")}
+        >
+          + Create Assessment
+        </button>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
         {assessments.map((a) => {
           const job = jobs.find((j) => j.id === a.jobId);
-          const sec = a.sections || [];
-          const totalQuestions = sec.reduce((acc, s) => acc + (s.questions?.length || 0), 0);
+          const totalQuestions = (a.sections || []).reduce(
+            (acc, s) => acc + (s.questions?.length || 0),
+            0
+          );
 
           return (
             <div
@@ -68,19 +54,17 @@ export default function Assessments() {
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Job: {job?.title || "Job not found"}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Sections: {sec.length}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Questions: {totalQuestions}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Sections: {a.sections?.length || 0}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Questions: {totalQuestions}
+                </p>
               </div>
               <div className="mt-3 flex gap-2 flex-wrap">
                 <button
-                  className="px-3 py-1 bg-green-600 dark:bg-green-500 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 transition"
-                  onClick={() => openModal("edit", a)}
-                >
-                  Edit
-                </button>
-                <button
                   className="px-3 py-1 bg-yellow-500 dark:bg-yellow-400 text-white rounded hover:bg-yellow-600 dark:hover:bg-yellow-500 transition"
-                  onClick={() => openModal("view", a)}
+                  onClick={() => navigate(`/assessment/view/${a.id}`)}
                 >
                   View
                 </button>
@@ -95,15 +79,6 @@ export default function Assessments() {
           );
         })}
       </div>
-
-      <AssessmentModal
-        show={modalProps.show}
-        mode={modalProps.mode}
-        assessment={modalProps.assessment}
-        onClose={() => setModalProps({ ...modalProps, show: false })}
-        onSave={handleSave}
-        jobs={jobs}
-      />
     </div>
   );
 }
