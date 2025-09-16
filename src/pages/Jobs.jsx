@@ -1,201 +1,283 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import JobModal from "../components/jobs/JobModal";
-import { db } from "../db/db"; // client-side DB demo
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { db } from "../db/db"
+import JobModal from "../components/jobs/JobModal"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
+import { Search, Briefcase, Eye } from "lucide-react"
 
 export default function Jobs() {
-  const [jobs, setJobs] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const [modalProps, setModalProps] = useState({ show: false, job: null });
-  const navigate = useNavigate();
+  const [jobs, setJobs] = useState([])
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(10)
+  const [total, setTotal] = useState(0)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("All")
+  const [modalProps, setModalProps] = useState({ show: false, job: null })
+  const navigate = useNavigate()
 
   const fetchJobs = async () => {
-    let filteredJobs = await db.jobs.toArray();
+    let filteredJobs = await db.jobs.toArray()
 
     if (search) {
-      filteredJobs = filteredJobs.filter((j) =>
-        j.title.toLowerCase().includes(search.toLowerCase())
-      );
+      filteredJobs = filteredJobs.filter(
+        (j) =>
+          j.title.toLowerCase().includes(search.toLowerCase()) ||
+          j.status.toLowerCase().includes(search.toLowerCase())
+      )
     }
-    if (statusFilter) {
-      filteredJobs = filteredJobs.filter((j) => j.status === statusFilter);
-    }
-    if (tagFilter) {
-      filteredJobs = filteredJobs.filter((j) => j.tags?.includes(tagFilter));
+    if (statusFilter !== "All") {
+      filteredJobs = filteredJobs.filter((j) => j.status === statusFilter)
     }
 
-    setTotal(filteredJobs.length);
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    setJobs(filteredJobs.slice(start, end));
-  };
+    setTotal(filteredJobs.length)
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    setJobs(filteredJobs.slice(start, end))
+  }
 
   useEffect(() => {
-    fetchJobs();
-  }, [page, search, statusFilter, tagFilter]);
+    fetchJobs()
+  }, [page, search, statusFilter])
 
   const openModal = (job = null) => {
-    setModalProps({ show: true, job });
-  };
+    setModalProps({ show: true, job })
+  }
 
   const handleSaveJob = async (jobData) => {
-    const exists = await db.jobs.where("slug").equals(jobData.slug).first();
+    const exists = await db.jobs.where("slug").equals(jobData.slug).first()
     if (exists && exists.id !== jobData.id) {
-      return alert("Job with this title already exists.");
+      return alert("Job with this title already exists.")
     }
 
     if (jobData.id) {
-      await db.jobs.put(jobData);
-      setJobs(jobs.map((j) => (j.id === jobData.id ? jobData : j)));
+      await db.jobs.put(jobData)
+      setJobs(jobs.map((j) => (j.id === jobData.id ? jobData : j)))
     } else {
-      const id = await db.jobs.add(jobData);
-      setJobs([...jobs, { ...jobData, id }]);
+      const id = await db.jobs.add(jobData)
+      setJobs([...jobs, { ...jobData, id }])
     }
 
-    setModalProps({ show: false, job: null });
-  };
+    setModalProps({ show: false, job: null })
+  }
 
   const handleArchive = async (job) => {
     const updated = {
       ...job,
-      status: job.status === "archived" ? "active" : "archived",
-    };
-    await db.jobs.put(updated);
-    setJobs(jobs.map((j) => (j.id === job.id ? updated : j)));
-  };
+      status: job.status === "Archived" ? "Active" : "Archived",
+    }
+    await db.jobs.put(updated)
+    setJobs(jobs.map((j) => (j.id === job.id ? updated : j)))
+  }
 
-  const totalPages = Math.ceil(total / pageSize);
+  const handleDelete = async (job) => {
+    if (window.confirm("Are you sure you want to delete this job?")) {
+      await db.jobs.delete(job.id)
+      setJobs(jobs.filter((j) => j.id !== job.id))
+    }
+  }
+
+  const totalPages = Math.ceil(total / pageSize)
+
+  // Stats
+  const totalJobs = total
+  const activeJobs = jobs.filter((j) => j.status === "Active").length
+  const archivedJobs = jobs.filter((j) => j.status === "Archived").length
+  const inactiveJobs = jobs.filter((j) => j.status === "Inactive").length
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-        Jobs
-      </h2>
+    <div className="space-y-6 dark:bg-gray-900 dark:text-gray-100 min-h-screen p-8">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">Jobs</h1>
 
-      {/* Filters & Search */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Search title..."
-          className="border px-3 py-1 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select
-          className="border px-6 py-1 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Status</option>
-          <option value="draft">Draft</option>
-          <option value="active">Active</option>
-          <option value="archived">Archived</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Filter by tag..."
-          className="border px-3 py-2 rounded-3xl text-sm bg-white dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700"
-          value={tagFilter}
-          onChange={(e) => setTagFilter(e.target.value)}
-        />
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 w-4 h-4" />
+            <Input
+              placeholder="Search jobs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
 
-        <button
-          className="px-4 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-3xl text-sm transition"
-          onClick={() => openModal()}
-        >
-          + Create Job
-        </button>
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px] rounded-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-800 dark:text-gray-100 rounded-md shadow-lg">
+              <SelectItem value="All">All</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Archived">Archived</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Create Job Button */}
+          <Button
+            onClick={() => openModal()}
+            className="w-full md:w-auto rounded-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          >
+            + Create Job
+          </Button>
+        </div>
       </div>
 
-      {/* Jobs Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {jobs.map((job) => (
-          <div
-            key={job.id}
-            className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between border border-gray-200 dark:border-gray-700"
-          >
-            <div>
-              <h3
-                className="text-lg text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                onClick={() => navigate(`/job/${job.id}`)}
-              >
-                {job.title}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 my-2">
-                Status: {job.status}
-              </p>
-              {job.tags && job.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 my-2">
-                  {job.tags.map((tag, idx) => (
-                    <span
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle>Total Jobs</CardTitle>
+            <CardDescription>{totalJobs}</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle>Active</CardTitle>
+            <CardDescription>{activeJobs}</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle>Archived</CardTitle>
+            <CardDescription>{archivedJobs}</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle>Inactive</CardTitle>
+            <CardDescription>{inactiveJobs}</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+
+      {/* Job Cards */}
+      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {jobs.length > 0 ? (
+          jobs.map((job) => (
+            <Card
+              key={job.id}
+              className="flex flex-col justify-between bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+            >
+              {/* Card Header */}
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Briefcase className="w-5 h-5 text-indigo-500" />
+                    <CardTitle className="text-base md:text-lg">
+                      {job.title}
+                    </CardTitle>
+                  </div>
+                  <Badge
+                    variant={
+                      job.status === "Active"
+                        ? "default"
+                        : job.status === "Archived"
+                        ? "secondary"
+                        : "outline"
+                    }
+                    className="dark:bg-gray-700 dark:text-gray-100 px-2 py-1 text-sm"
+                  >
+                    {job.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              {/* Card Content */}
+              <CardContent>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {job.tags?.map((tag, idx) => (
+                    <Badge
                       key={idx}
-                      className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-full px-2 py-1"
+                      variant="outline"
+                      className="dark:border-gray-600 dark:text-gray-100 text-sm"
                     >
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
-              )}
-            </div>
-            <div className="mt-4 flex gap-2 justify-end">
-              <button
-                className="px-6 py-1 bg-green-600 text-sm text-white rounded-2xl hover:bg-green-700 transition"
-                onClick={() => openModal(job)}
-              >
-                Edit
-              </button>
-              <button
-                className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-2xl hover:bg-yellow-600 transition"
-                onClick={() => handleArchive(job)}
-              >
-                {job.status === "archived" ? "Unarchive" : "Archive"}
-              </button>
-              <button
-                className="px-3 py-1 bg-red-600 text-white text-sm rounded-2xl hover:bg-red-700 transition"
-                onClick={async () => {
-                  if (
-                    window.confirm("Are you sure you want to delete this job?")
-                  ) {
-                    await db.jobs.delete(job.id);
-                    setJobs(jobs.filter((j) => j.id !== job.id));
-                  }
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+                  {job.description || "No description available."}
+                </p>
+              </CardContent>
+
+              {/* Card Footer */}
+              <CardFooter className="flex gap-2">
+                <Button
+                  onClick={() => navigate(`/job/${job.id}`)}
+                  className="flex-1 rounded-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Eye className="w-4 h-4" /> View
+                </Button>
+                <Button
+                  onClick={() => openModal(job)}
+                  variant="outline"
+                  className="flex-1 rounded-full"
+                >
+                  Edit
+                </Button>
+                <Button
+                  onClick={() => handleArchive(job)}
+                  variant="outline"
+                  className="flex-1 rounded-full"
+                >
+                  {job.status === "Archived" ? "Unarchive" : "Archive"}
+                </Button>
+                <Button
+                  onClick={() => handleDelete(job)}
+                  variant="destructive"
+                  className="flex-1 rounded-full"
+                >
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <p className="text-center col-span-full text-gray-500 dark:text-gray-400">
+            No jobs found.
+          </p>
+        )}
       </div>
 
       {/* Pagination */}
       <div className="flex justify-center items-center mt-6 space-x-4">
-        <button
+        <Button
+          variant="outline"
           disabled={page === 1}
-          className={`px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition ${
-            page === 1 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
         >
           Previous
-        </button>
+        </Button>
         <span className="text-gray-900 dark:text-gray-300">
           Page {page} of {totalPages}
         </span>
-        <button
+        <Button
+          variant="outline"
           disabled={page === totalPages}
-          className={`px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition ${
-            page === totalPages ? "opacity-50 cursor-not-allowed" : ""
-          }`}
           onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
         >
           Next
-        </button>
+        </Button>
       </div>
 
       {/* Modal */}
@@ -206,5 +288,5 @@ export default function Jobs() {
         onSave={handleSaveJob}
       />
     </div>
-  );
+  )
 }

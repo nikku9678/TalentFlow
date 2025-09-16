@@ -119,7 +119,7 @@ export default function AssessmentBuilder({ mode = "create" }) {
         });
         alert("Assessment created successfully!");
       }
-      navigate("/assessments"); // back to list page
+      navigate("/assessment"); // back to list page
     } catch (err) {
       console.error(err);
       alert("Failed to save assessment");

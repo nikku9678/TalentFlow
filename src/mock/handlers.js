@@ -11,6 +11,26 @@ const WRITE_ERROR_RATE = 0.08; // 8% chance to fail on write endpoints
 const LATENCY = { min: 200, max: 1200 };
 
 export const handlers = [
+
+  // -------------------- DASHBOARD SUMMARY --------------------
+http.get("/dashboard/summary", async () => {
+  await simulateNetwork(LATENCY)
+
+  const totalJobs = await db.jobs.count()
+  const activeJobs = await db.jobs.where("status").equals("Active").count()
+  const totalCandidates = await db.candidates.count()
+  const hiredCandidates = await db.candidates.where("stage").equals("Hired").count()
+  const totalAssessments = await db.assessments.count()
+
+  return HttpResponse.json({
+    total_jobs: totalJobs,
+    active_jobs: activeJobs,
+    total_candidates: totalCandidates,
+    hired_candidates: hiredCandidates,
+    total_assessments: totalAssessments,
+  })
+}),
+
   // -------------------- JOBS --------------------
   http.get("/jobs", async ({ request }) => {
     await simulateNetwork(LATENCY)
@@ -302,6 +322,18 @@ http.post("/candidates/:id/notes", async ({ request, params }) => {
     return HttpResponse.json({ message: "No assessments found" }, { status: 404 });
   return HttpResponse.json(assessments);
 }),
+
+// ✅ Get single assessment by id
+http.get("/assessment/:id", async ({ params }) => {
+  await simulateNetwork(LATENCY)
+  const id = parseInt(params.id, 10)
+  const assessment = await db.assessments.get(id)
+  if (!assessment) {
+    return HttpResponse.json({ message: "Assessment not found" }, { status: 404 })
+  }
+  return HttpResponse.json(assessment)
+}),
+
 
 http.put("/assessments/:jobId", async ({ request, params }) => {
   await simulateNetwork(LATENCY);

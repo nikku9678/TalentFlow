@@ -4,7 +4,7 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}", // scan all files in src
-    "./node_modules/@/components/ui/**/*.{js,ts,jsx,tsx}", // if shadcn paths
+    ".@/components/ui/**/*.{js,ts,jsx,tsx}", // if shadcn paths
   ],
   theme: {
   	extend: {

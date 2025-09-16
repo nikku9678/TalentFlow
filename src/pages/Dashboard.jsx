@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Briefcase,
@@ -7,7 +7,7 @@ import {
   Clock,
   Plus,
   Eye,
-  Calendar,
+  Calendar as CalendarIcon,
   BarChart3,
 } from "lucide-react";
 import {
@@ -19,30 +19,73 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { Calendar } from "../components/ui/calendar";
+import { db } from "../db/db"; // ✅ import Dexie DB
+
+// ✅ A reusable hover class for smooth scaling
+const cardHover =
+  "transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-lg";
 
 const Dashboard = () => {
-  // 🔹 Static data
-  const stats = {
-    total_jobs: 12,
-    active_jobs: 5,
-    total_candidates: 48,
-    hired_candidates: 7,
-  };
+  // 🔹 States for DB Data
+  const [stats, setStats] = useState({
+    total_jobs: 0,
+    active_jobs: 0,
+    total_candidates: 0,
+    hired_candidates: 0,
+  });
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [recentCandidates, setRecentCandidates] = useState([]);
 
-  const recentJobs = [
-    { id: 1, title: "Frontend Developer", created_at: "2025-08-01", status: "Active" },
-    { id: 2, title: "Backend Developer", created_at: "2025-07-28", status: "Closed" },
-    { id: 3, title: "UI/UX Designer", created_at: "2025-07-25", status: "Paused" },
-  ];
+  // 🔹 Timer
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const recentCandidates = [
-    { id: 1, name: "Alice Johnson", email: "alice@example.com", stage: "Interview" },
-    { id: 2, name: "Bob Smith", email: "bob@example.com", stage: "Technical Assessment" },
-    { id: 3, name: "Charlie Brown", email: "charlie@example.com", stage: "Hired" },
-  ];
+  // 🔹 Calendar
+  const [date, setDate] = useState(new Date());
 
+  // 🔹 Fetch Data from DB
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const jobs = await db.jobs.toArray();
+        const candidates = await db.candidates.toArray();
+
+        // Stats
+        const total_jobs = jobs.length;
+        const active_jobs = jobs.filter((j) => j.status === "Active").length;
+        const total_candidates = candidates.length;
+        const hired_candidates = candidates.filter((c) => c.stage === "Hired").length;
+
+        setStats({ total_jobs, active_jobs, total_candidates, hired_candidates });
+
+        // Recent Jobs (latest 3)
+        setRecentJobs(
+          jobs
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 3)
+        );
+
+        // Recent Candidates (latest 3)
+        setRecentCandidates(
+          candidates
+            .sort((a, b) => b.id - a.id) // assuming incremental IDs
+            .slice(0, 3)
+        );
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔹 UI Components
   const StatCard = ({ title, value, icon: Icon, description, trend, color = "blue" }) => (
-    <Card className="hover-lift smooth-transition">
+    <Card className={cardHover}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
           {title}
@@ -67,7 +110,8 @@ const Dashboard = () => {
     const colors = {
       Applied: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
       "Phone Screen": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      "Technical Assessment": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+      "Technical Assessment":
+        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
       Interview: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
       "Final Review": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
       Hired: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
@@ -106,123 +150,174 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Jobs"
-          value={stats.total_jobs}
-          icon={Briefcase}
-          description={`${stats.active_jobs} active positions`}
-          trend="+12% from last month"
-          color="blue"
-        />
-        <StatCard
-          title="Total Candidates"
-          value={stats.total_candidates}
-          icon={Users}
-          description="In pipeline"
-          trend="+25% from last month"
-          color="green"
-        />
-        <StatCard
-          title="Hired This Month"
-          value={stats.hired_candidates}
-          icon={TrendingUp}
-          description="Successfully placed"
-          trend="+8% from last month"
-          color="purple"
-        />
-        <StatCard
-          title="Avg. Time to Hire"
-          value="12 days"
-          icon={Clock}
-          description="Industry benchmark: 23 days"
-          trend="-3 days improvement"
-          color="orange"
-        />
-      </div>
+      {/* Main Grid with Stats + Timer/Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Stats (left 2/3) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <StatCard
+              title="Total Jobs"
+              value={stats.total_jobs}
+              icon={Briefcase}
+              description={`${stats.active_jobs} active positions`}
+              trend="+12% from last month"
+              color="blue"
+            />
+            <StatCard
+              title="Total Candidates"
+              value={stats.total_candidates}
+              icon={Users}
+              description="In pipeline"
+              trend="+25% from last month"
+              color="green"
+            />
+            <StatCard
+              title="Hired This Month"
+              value={stats.hired_candidates}
+              icon={TrendingUp}
+              description="Successfully placed"
+              trend="+8% from last month"
+              color="purple"
+            />
+            <StatCard
+              title="Avg. Time to Hire"
+              value="12 days"
+              icon={Clock}
+              description="Industry benchmark: 23 days"
+              trend="-3 days improvement"
+              color="orange"
+            />
+          </div>
 
-      {/* Recent Activity Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Jobs */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Recent Jobs</CardTitle>
-              <CardDescription>Latest job postings and their status</CardDescription>
-            </div>
-            <Link to="/jobs">
-              <Button variant="ghost" size="sm">
-                <Eye className="w-4 h-4 mr-2" />
-                View All
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {job.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Created {new Date(job.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge className={`${getJobStatusColor(job.status)} border-0`}>
-                    {job.status}
-                  </Badge>
+          {/* Recent Activity Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Jobs */}
+            <Card className={cardHover}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Recent Jobs</CardTitle>
+                  <CardDescription>Latest job postings and their status</CardDescription>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <Link to="/jobs">
+                  <Button variant="ghost" size="sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    View All
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentJobs.length === 0 ? (
+                    <p className="text-sm text-gray-500">No jobs found</p>
+                  ) : (
+                    recentJobs.map((job) => (
+                      <div
+                        key={job.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {job.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Created {new Date(job.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge className={`${getJobStatusColor(job.status)} border-0`}>
+                          {job.status}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Recent Candidates */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Recent Candidates</CardTitle>
-              <CardDescription>Latest applications and their status</CardDescription>
-            </div>
-            <Link to="/candidates">
-              <Button variant="ghost" size="sm">
-                <Eye className="w-4 h-4 mr-2" />
-                View All
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentCandidates.map((candidate) => (
-                <div
-                  key={candidate.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {candidate.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {candidate.email}
-                    </p>
-                  </div>
-                  <Badge className={`${getStageColor(candidate.stage)} border-0`}>
-                    {candidate.stage}
-                  </Badge>
+            {/* Recent Candidates */}
+            <Card className={cardHover}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Recent Candidates</CardTitle>
+                  <CardDescription>Latest applications and their status</CardDescription>
                 </div>
-              ))}
+                <Link to="/candidates">
+                  <Button variant="ghost" size="sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    View All
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentCandidates.length === 0 ? (
+                    <p className="text-sm text-gray-500">No candidates found</p>
+                  ) : (
+                    recentCandidates.map((candidate) => (
+                      <div
+                        key={candidate.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {candidate.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {candidate.email}
+                          </p>
+                        </div>
+                        <Badge className={`${getStageColor(candidate.stage)} border-0`}>
+                          {candidate.stage}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Sidebar (Timer + Calendar) */}
+        <div className="space-y-6 lg:space-y-4 lg:flex lg:flex-col lg:w-64">
+          {/* Timer Card */}
+          <Card
+            className={`h-32 flex flex-col items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl ${cardHover}`}
+          >
+            <div className="flex items-center space-x-2">
+              <Clock className="w-6 h-6" />
+              <CardTitle className="text-lg">Current Time</CardTitle>
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-2xl font-semibold mt-2">{time.toLocaleTimeString()}</p>
+            <p className="text-sm mt-1">{time.toDateString()}</p>
+          </Card>
+
+          {/* Calendar Card */}
+          <Card className={`bg-white rounded-xl shadow-md ${cardHover}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <CalendarIcon className="w-5 h-5 text-indigo-500" />
+                <span>Calendar</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                className="rounded-lg overflow-hidden"
+                value={date}
+                onChange={setDate}
+                tileClassName={({ date: tileDate }) =>
+                  tileDate.toDateString() === date.toDateString()
+                    ? "bg-indigo-100 text-indigo-700 font-semibold rounded-full"
+                    : ""
+                }
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className={cardHover}>
         <CardHeader>
           <CardTitle className="text-lg">Quick Actions</CardTitle>
           <CardDescription>Common tasks and shortcuts</CardDescription>
@@ -248,7 +343,7 @@ const Dashboard = () => {
               </Button>
             </Link>
             <Button variant="outline" className="w-full justify-start h-auto p-4">
-              <Calendar className="w-5 h-5 mr-3 text-purple-600" />
+              <CalendarIcon className="w-5 h-5 mr-3 text-purple-600" />
               <div className="text-left">
                 <div className="font-medium">Schedule Interviews</div>
                 <div className="text-xs text-gray-500">Plan meetings</div>
