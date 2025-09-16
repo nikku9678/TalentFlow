@@ -121,7 +121,7 @@ export default function AssessmentBuilder({ mode = "create" }) {
         })
         alert("Assessment created successfully!")
       }
-      navigate("/assessments")
+      navigate("/assessment")
     } catch (err) {
       console.error(err)
       alert("Failed to save assessment")
