@@ -4,13 +4,19 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import ThemeToggle from "./ThemeToggle"
 import { Avatar,AvatarImage,AvatarFallback } from "@/components/ui/avatar"
+import { useNavigate } from "react-router-dom"
 export default function Navbar({ collapsed, onDesktopToggle, onMobileOpen }) {
+  const navigate = useNavigate();
   const handleMenuClick = () => {
     if (window.innerWidth < 768) {
       onMobileOpen() // open mobile drawer
     } else {
       onDesktopToggle()
     }
+  }
+
+  const handleNavigateCreateJob =()=>{
+    navigate("/job/create")
   }
  
   return (
@@ -39,7 +45,7 @@ export default function Navbar({ collapsed, onDesktopToggle, onMobileOpen }) {
       {/* Right: actions */}
       <div className="flex items-center gap-3 md:gap-6 ml-3 pr-1 md:pr-8">
         {/* Hidden on mobile */}
-        <Button className="hidden sm:flex text-white bg-black rounded-full hover:bg-gray-800 dark:hover:bg-gray-700">
+        <Button onClick={handleNavigateCreateJob} className="hidden sm:flex text-white bg-black rounded-full hover:bg-gray-800 dark:hover:bg-gray-700">
           Create Job
         </Button>
  

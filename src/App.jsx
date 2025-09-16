@@ -35,7 +35,7 @@ export default function App() {
           element={<AssessmentBuilder mode="edit" />}
         />
         <Route path="/assessment/view/:id" element={<AssessmentView />} />
-        <Route path="/job/create" element={<CreateJob />} />
+        <Route path="/job/create" element={<Layout><CreateJob /></Layout>} />
       </Routes>
     </Router>
   );

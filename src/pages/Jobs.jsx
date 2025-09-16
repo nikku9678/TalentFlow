@@ -118,6 +118,10 @@ export default function Jobs() {
     }
   };
 
+  const navigateCreateJob =()=>{
+    navigate("/job/create");
+  }
+
   const totalPages = Math.ceil(total / pageSize);
 
   // Stats
@@ -159,7 +163,7 @@ export default function Jobs() {
 
           {/* Create Job Button */}
           <Button
-            onClick={() => openModal()}
+            onClick={ navigateCreateJob}
             className="w-full md:w-auto rounded-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             + Create Job
