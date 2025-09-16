@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { db } from "../db/db"
-import JobModal from "../components/jobs/JobModal"
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { db } from "../db/db";
+import JobModal from "../components/jobs/JobModal";
 import {
   Card,
   CardHeader,
@@ -9,97 +9,122 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select"
-import { Search, Briefcase, Eye } from "lucide-react"
+} from "@/components/ui/select";
+import { Search, Briefcase, Eye } from "lucide-react";
 
 export default function Jobs() {
-  const [jobs, setJobs] = useState([])
-  const [page, setPage] = useState(1)
-  const [pageSize] = useState(10)
-  const [total, setTotal] = useState(0)
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("All")
-  const [modalProps, setModalProps] = useState({ show: false, job: null })
-  const navigate = useNavigate()
+  const [jobs, setJobs] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [modalProps, setModalProps] = useState({ show: false, job: null });
+  const navigate = useNavigate();
 
+  // Fetch jobs from IndexedDB
   const fetchJobs = async () => {
-    let filteredJobs = await db.jobs.toArray()
+    let collection = [];
+    try {
+      // Use MSW API if available (dev), otherwise Dexie directly
+      if (window.api?.getJobs) {
+        collection = await window.api.getJobs();
+      } else {
+        collection = await db.jobs.toArray();
+      }
 
-    if (search) {
-      filteredJobs = filteredJobs.filter(
-        (j) =>
-          j.title.toLowerCase().includes(search.toLowerCase()) ||
-          j.status.toLowerCase().includes(search.toLowerCase())
-      )
-    }
-    if (statusFilter !== "All") {
-      filteredJobs = filteredJobs.filter((j) => j.status === statusFilter)
-    }
+      // Apply filters
+      if (search) {
+        collection = collection.filter(
+          (j) =>
+            j.title.toLowerCase().includes(search.toLowerCase()) ||
+            (j.status || "").toLowerCase().includes(search.toLowerCase())
+        );
+      }
 
-    setTotal(filteredJobs.length)
-    const start = (page - 1) * pageSize
-    const end = start + pageSize
-    setJobs(filteredJobs.slice(start, end))
-  }
+      if (statusFilter !== "All") {
+        collection = collection.filter((j) => j.status === statusFilter);
+      }
+
+      // Pagination
+      setTotal(collection.length);
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      setJobs(collection.slice(start, end));
+    } catch (err) {
+      console.error("Failed to fetch jobs:", err);
+    }
+  };
 
   useEffect(() => {
-    fetchJobs()
-  }, [page, search, statusFilter])
+    fetchJobs();
+  }, [page, search, statusFilter]);
 
   const openModal = (job = null) => {
-    setModalProps({ show: true, job })
-  }
+    setModalProps({ show: true, job });
+  };
 
   const handleSaveJob = async (jobData) => {
-    const exists = await db.jobs.where("slug").equals(jobData.slug).first()
-    if (exists && exists.id !== jobData.id) {
-      return alert("Job with this title already exists.")
-    }
+    try {
+      // Ensure unique slug
+      let slug = jobData.slug || jobData.title.toLowerCase().replace(/\s+/g, "-");
+      const exists = await db.jobs.where("slug").equals(slug).first();
+      if (exists && exists.id !== jobData.id) {
+        return alert("Job with this title already exists.");
+      }
 
-    if (jobData.id) {
-      await db.jobs.put(jobData)
-      setJobs(jobs.map((j) => (j.id === jobData.id ? jobData : j)))
-    } else {
-      const id = await db.jobs.add(jobData)
-      setJobs([...jobs, { ...jobData, id }])
-    }
+      // Update or create
+      if (jobData.id) {
+        await db.jobs.put({ ...jobData, slug });
+      } else {
+        const id = await db.jobs.add({ ...jobData, slug });
+        jobData.id = id;
+      }
 
-    setModalProps({ show: false, job: null })
-  }
+      fetchJobs(); // Refresh list
+      setModalProps({ show: false, job: null });
+    } catch (err) {
+      console.error("Failed to save job:", err);
+    }
+  };
 
   const handleArchive = async (job) => {
-    const updated = {
-      ...job,
-      status: job.status === "Archived" ? "Active" : "Archived",
+    try {
+      const updated = {
+        ...job,
+        status: job.status === "Archived" ? "Active" : "Archived",
+      };
+      await db.jobs.put(updated);
+      fetchJobs();
+    } catch (err) {
+      console.error("Failed to archive/unarchive job:", err);
     }
-    await db.jobs.put(updated)
-    setJobs(jobs.map((j) => (j.id === job.id ? updated : j)))
-  }
+  };
 
   const handleDelete = async (job) => {
     if (window.confirm("Are you sure you want to delete this job?")) {
-      await db.jobs.delete(job.id)
-      setJobs(jobs.filter((j) => j.id !== job.id))
+      await db.jobs.delete(job.id);
+      fetchJobs();
     }
-  }
+  };
 
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.ceil(total / pageSize);
 
   // Stats
-  const totalJobs = total
-  const activeJobs = jobs.filter((j) => j.status === "Active").length
-  const archivedJobs = jobs.filter((j) => j.status === "Archived").length
-  const inactiveJobs = jobs.filter((j) => j.status === "Inactive").length
+  const totalJobs = total;
+  const activeJobs = jobs.filter((j) => j.status === "Active").length;
+  const archivedJobs = jobs.filter((j) => j.status === "Archived").length;
+  const inactiveJobs = jobs.filter((j) => j.status === "Inactive").length;
 
   return (
     <div className="space-y-6 dark:bg-gray-900 dark:text-gray-100 min-h-screen p-8">
@@ -178,7 +203,6 @@ export default function Jobs() {
               key={job.id}
               className="flex flex-col justify-between bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow"
             >
-              {/* Card Header */}
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -202,7 +226,6 @@ export default function Jobs() {
                 </div>
               </CardHeader>
 
-              {/* Card Content */}
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {job.tags?.map((tag, idx) => (
@@ -220,7 +243,6 @@ export default function Jobs() {
                 </p>
               </CardContent>
 
-              {/* Card Footer */}
               <CardFooter className="flex gap-2">
                 <Button
                   onClick={() => navigate(`/job/${job.id}`)}
@@ -288,5 +310,5 @@ export default function Jobs() {
         onSave={handleSaveJob}
       />
     </div>
-  )
+  );
 }

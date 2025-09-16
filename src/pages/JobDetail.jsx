@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { db } from "../db/db";
-import JobModal from "../components/jobs/JobModal";
 import { Button } from "@/components/ui/button";
 
 const STATUSES = ["draft", "active", "archived"];
@@ -13,27 +12,34 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showJobModal, setShowJobModal] = useState(false);
   const [activeTab, setActiveTab] = useState("Job Description");
   const [assessments, setAssessments] = useState([]);
 
   useEffect(() => {
     async function fetchJobAndAssessments() {
       try {
-        const res = await fetch(`/jobs?page=1&pageSize=1000`);
-        const data = await res.json();
-        const foundJob = data.items.find((j) => j.id === parseInt(id, 10)) || null;
+        // Fetch job from IndexedDB (window.api if exists, fallback to Dexie)
+        let allJobs = [];
+        if (window.api?.getJobs) {
+          allJobs = await window.api.getJobs();
+        } else {
+          allJobs = await db.jobs.toArray();
+        }
+
+        const foundJob = allJobs.find((j) => j.id === parseInt(id, 10)) || null;
         setJob(foundJob);
 
-        const dbAssessments = await db.assessments.toArray();
-        const jobAssessments = dbAssessments.filter((a) => a.jobId === parseInt(id, 10));
+        // Fetch assessments for this job
+        const allAssessments = await db.assessments.toArray();
+        const jobAssessments = allAssessments.filter((a) => a.jobId === parseInt(id, 10));
         setAssessments(jobAssessments);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch job/assessments:", err);
       } finally {
         setLoading(false);
       }
     }
+
     fetchJobAndAssessments();
   }, [id]);
 
@@ -61,13 +67,11 @@ export default function JobDetail() {
 
   return (
     <div className="p-4 lg:p-6 max-w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300">
-
       {/* LEFT SIDE */}
       <div className="lg:col-span-2 space-y-6">
         {/* Job Header */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-4">
           <h2 className="text-2xl font-bold">{job.title}</h2>
-
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <p><span className="font-semibold">Job Type:</span> {job.type || "In-Office"}</p>
             <p><span className="font-semibold">#Openings:</span> {job.openings || 2}</p>
