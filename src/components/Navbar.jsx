@@ -1,4 +1,4 @@
-import { LogOut, Menu, Search, User, Settings } from "lucide-react"
+import { LogOut, Menu, Search, User, Settings, PanelRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -36,7 +36,7 @@ export default function Navbar({ collapsed, onDesktopToggle, onMobileOpen }) {
           onClick={handleMenuClick}
           className="rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
         >
-          <Menu className="w-6 h-6" />
+          <PanelRight className="w-16 h-16" />
         </Button>
 
         {/* Search */}
