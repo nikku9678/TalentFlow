@@ -13,22 +13,12 @@ export default function Assessments() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch jobs from IndexedDB
-        let jobsData = [];
-        if (window.api?.getJobs) {
-          jobsData = await window.api.getJobs();
-        } else {
-          jobsData = await db.jobs.toArray();
-        }
+        // Fetch jobs
+        const jobsData = await db.jobs.toArray();
         setJobs(jobsData);
 
-        // Fetch assessments from IndexedDB
-        let assessmentsData = [];
-        if (window.api?.getAssessments) {
-          assessmentsData = await window.api.getAssessments();
-        } else {
-          assessmentsData = await db.assessments.toArray();
-        }
+        // Fetch assessments
+        const assessmentsData = await db.assessments.toArray();
 
         // Enrich assessments with job title + total questions
         const enriched = assessmentsData.map((a) => {
@@ -58,37 +48,39 @@ export default function Assessments() {
   };
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-8 p-6 lg:p-8 dark:bg-gray-900 min-h-screen dark:text-gray-100">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Assessments</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Assessments</h2>
         <Button
-          className="bg-blue-600 text-white rounded-2xl"
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
           onClick={() => navigate("/assessment/create")}
         >
           + Create Assessment
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Assessment Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {assessments.length > 0 ? (
           assessments.map((a) => (
             <Card
               key={a.id}
-              className="flex flex-col justify-between hover:shadow-lg cursor-pointer transition-all duration-200"
+              className="flex flex-col justify-between hover:shadow-lg dark:border-gray-700 cursor-pointer transition-transform duration-200 hover:scale-[1.02]"
             >
               <CardHeader>
-                <CardTitle>{a.title}</CardTitle>
+                <CardTitle className="truncate">{a.title}</CardTitle>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">{a.jobTitle}</p>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700 dark:text-gray-300 text-sm">
                   {a.sections?.length || 0} sections, {a.totalQuestions} questions
                 </p>
               </CardContent>
               <CardFooter>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-between w-full"
+                  className="flex items-center dark:border-gray-700 justify-between w-full rounded-lg"
                   onClick={() => viewAssessmentHandler(a.id)}
                 >
                   View Assessment <ArrowRight className="w-4 h-4 ml-2" />
@@ -97,7 +89,9 @@ export default function Assessments() {
             </Card>
           ))
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">No assessments found.</p>
+          <Card className="p-6 flex items-center justify-center">
+            <p className="text-gray-500 dark:text-gray-400">No assessments found.</p>
+          </Card>
         )}
       </div>
     </div>

@@ -15,6 +15,7 @@ import AssessmentView from "./components/assessment/AssessmentView";
 import CreateJob from "./components/jobs/CreateJob";
 import Layout from "./pages/Layout";
 import AssessmentViewer from "./components/assessment/AssessmentViewer";
+import CreateCandidate from "./components/candidate/CreateCandidate";
 
 export default function App() {
   return (
@@ -27,7 +28,8 @@ export default function App() {
         <Route path="/candidates" element={<Layout> <Candidates /></Layout>} />
         <Route path="/assessment" element={<Layout><Assessments /></Layout>} />
         <Route path="/assessment/view/:id" element={<Layout><AssessmentViewer /></Layout>} />
-        <Route path="/candidates/:id" element={<Layout> <CandidateProfile /></Layout>} />
+        <Route path="/candidate/:id" element={<Layout> <CandidateProfile /></Layout>} />
+        <Route path="/candidate/create" element={<Layout> <CreateCandidate /></Layout>} />
         <Route path="/job/:id" element={<Layout><JobDetail /> </Layout>} />
         <Route path="/assessment/create/:id" element={<Layout><AssessmentBuilder /></Layout>} />
         <Route

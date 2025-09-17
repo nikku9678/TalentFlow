@@ -2,17 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../db/db";
 import JobModal from "../components/jobs/JobModal";
+import JobCard from "../components/jobs/JobCard"; // ✅ new JobCard import
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
@@ -20,7 +18,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Search, Briefcase, Eye } from "lucide-react";
+import { Search,Briefcase, BriefcaseIcon } from "lucide-react";
+import { Spinner } from "@/components/Spinner"; // ✅ Spinner import
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -30,13 +29,14 @@ export default function Jobs() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [modalProps, setModalProps] = useState({ show: false, job: null });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Fetch jobs from IndexedDB
   const fetchJobs = async () => {
+    setLoading(true);
     let collection = [];
     try {
-      // Use MSW API if available (dev), otherwise Dexie directly
       if (window.api?.getJobs) {
         collection = await window.api.getJobs();
       } else {
@@ -63,6 +63,8 @@ export default function Jobs() {
       setJobs(collection.slice(start, end));
     } catch (err) {
       console.error("Failed to fetch jobs:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,14 +78,12 @@ export default function Jobs() {
 
   const handleSaveJob = async (jobData) => {
     try {
-      // Ensure unique slug
       let slug = jobData.slug || jobData.title.toLowerCase().replace(/\s+/g, "-");
       const exists = await db.jobs.where("slug").equals(slug).first();
       if (exists && exists.id !== jobData.id) {
         return alert("Job with this title already exists.");
       }
 
-      // Update or create
       if (jobData.id) {
         await db.jobs.put({ ...jobData, slug });
       } else {
@@ -91,7 +91,7 @@ export default function Jobs() {
         jobData.id = id;
       }
 
-      fetchJobs(); // Refresh list
+      fetchJobs();
       setModalProps({ show: false, job: null });
     } catch (err) {
       console.error("Failed to save job:", err);
@@ -118,9 +118,9 @@ export default function Jobs() {
     }
   };
 
-  const navigateCreateJob =()=>{
+  const navigateCreateJob = () => {
     navigate("/job/create");
-  }
+  };
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -163,7 +163,7 @@ export default function Jobs() {
 
           {/* Create Job Button */}
           <Button
-            onClick={ navigateCreateJob}
+            onClick={navigateCreateJob}
             className="w-full md:w-auto rounded-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             + Create Job
@@ -172,147 +172,88 @@ export default function Jobs() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle>Total Jobs</CardTitle>
-            <CardDescription>{totalJobs}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle>Active</CardTitle>
-            <CardDescription>{activeJobs}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle>Archived</CardTitle>
-            <CardDescription>{archivedJobs}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle>Inactive</CardTitle>
-            <CardDescription>{inactiveJobs}</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <CardHeader>
+      <CardTitle>Total Jobs</CardTitle>
+      <CardDescription>{totalJobs}</CardDescription>
+    </CardHeader>
+  </Card>
+  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <CardHeader>
+      <CardTitle>Active</CardTitle>
+      <CardDescription>{activeJobs}</CardDescription>
+    </CardHeader>
+  </Card>
+  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <CardHeader>
+      <CardTitle>Archived</CardTitle>
+      <CardDescription>{archivedJobs}</CardDescription>
+    </CardHeader>
+  </Card>
+  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <CardHeader>
+      <CardTitle>Inactive</CardTitle>
+      <CardDescription>{inactiveJobs}</CardDescription>
+    </CardHeader>
+  </Card>
+</div>
 
-      {/* Job Cards */}
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {jobs.length > 0 ? (
-          jobs.map((job) => (
-            <Card
-              key={job.id}
-              className="flex flex-col justify-between bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Briefcase className="w-5 h-5 text-indigo-500" />
-                    <CardTitle className="text-base md:text-lg">
-                      {job.title}
-                    </CardTitle>
-                  </div>
-                  <Badge
-                    variant={
-                      job.status === "Active"
-                        ? "default"
-                        : job.status === "Archived"
-                        ? "secondary"
-                        : "outline"
-                    }
-                    className="dark:bg-gray-700 dark:text-gray-100 px-2 py-1 text-sm"
-                  >
-                    {job.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {job.tags?.map((tag, idx) => (
-                    <Badge
-                      key={idx}
-                      variant="outline"
-                      className="dark:border-gray-600 dark:text-gray-100 text-sm"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                  {job.description || "No description available."}
-                </p>
-              </CardContent>
-
-              <CardFooter className="flex gap-2">
-                <Button
-                  onClick={() => navigate(`/job/${job.id}`)}
-                  className="flex-1 rounded-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Eye className="w-4 h-4" /> View
-                </Button>
-                <Button
-                  onClick={() => openModal(job)}
-                  variant="outline"
-                  className="flex-1 rounded-full"
-                >
-                  Edit
-                </Button>
-                <Button
-                  onClick={() => handleArchive(job)}
-                  variant="outline"
-                  className="flex-1 rounded-full"
-                >
-                  {job.status === "Archived" ? "Unarchive" : "Archive"}
-                </Button>
-                <Button
-                  onClick={() => handleDelete(job)}
-                  variant="destructive"
-                  className="flex-1 rounded-full"
-                >
-                  Delete
-                </Button>
-              </CardFooter>
-            </Card>
-          ))
-        ) : (
-          <p className="text-center col-span-full text-gray-500 dark:text-gray-400">
-            No jobs found.
-          </p>
-        )}
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-center items-center mt-6 space-x-4">
-        <Button
-          variant="outline"
-          disabled={page === 1}
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-        >
-          Previous
-        </Button>
-        <span className="text-gray-900 dark:text-gray-300">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          disabled={page === totalPages}
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-        >
-          Next
-        </Button>
-      </div>
-
-      {/* Modal */}
-      <JobModal
-        show={modalProps.show}
-        onClose={() => setModalProps({ show: false, job: null })}
-        job={modalProps.job}
-        onSave={handleSaveJob}
+{/* Job Cards */}
+<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  {loading ? (
+    <div className="col-span-full flex justify-center items-center py-20">
+      <Spinner className="h-12 w-12 border-blue-800" />
+    </div>
+  ) : jobs.length > 0 ? (
+    jobs.map((job) => (
+      <JobCard
+        key={job.id}
+        job={job}
+        onView={() => navigate(`/job/${job.id}`)}
+        onEdit={() => openModal(job)}
+        onArchive={() => handleArchive(job)}
+        onDelete={() => handleDelete(job)}
       />
+    ))
+  ) : (
+    <div className="col-span-full">
+      <Card className="flex flex-col items-center justify-center py-20 border border-gray-200 dark:border-gray-700">
+        <BriefcaseIcon className="w-12 h-12 text-gray-400 mb-4" />
+        <p className="text-gray-600 dark:text-gray-300 text-lg">
+          No jobs found
+        </p>
+      </Card>
+    </div>
+  )}
+</div>
+
+{/* Pagination */}
+<div className="flex text-xs justify-center items-center mt-6 space-x-4">
+  <Button
+    variant="outline"
+    className="text-xs border border-gray-300 dark:border-gray-700"
+    disabled={page === 1}
+    onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+  >
+    Previous
+  </Button>
+  <span className="text-gray-900 dark:text-gray-300">
+    Page {page} of {totalPages}
+  </span>
+  <Button
+    className="text-xs border border-gray-300 dark:border-gray-700"
+    variant="outline"
+    disabled={page === totalPages}
+    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+  >
+    Next
+  </Button>
+</div>
+
+
+     
+
     </div>
   );
 }

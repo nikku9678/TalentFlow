@@ -25,7 +25,7 @@ const QUESTION_TYPES = [
 
 export default function AssessmentBuilder({ mode = "create" }) {
   const navigate = useNavigate()
-  const { id, id: jobId } = useParams() // id = assessmentId for edit, jobId for create
+  const { id, id: jobId } = useParams()
 
   const [title, setTitle] = useState("")
   const [sections, setSections] = useState([{ title: "", questions: [] }])
@@ -65,11 +65,7 @@ export default function AssessmentBuilder({ mode = "create" }) {
   }
   const updateQuestion = (sIdx, qIdx, key, value) => {
     const newSections = [...sections]
-    if (key === "choices") {
-      newSections[sIdx].questions[qIdx][key] = value
-    } else {
-      newSections[sIdx].questions[qIdx][key] = value
-    }
+    newSections[sIdx].questions[qIdx][key] = value
     setSections(newSections)
   }
   const addOption = (sIdx, qIdx) => {
@@ -131,133 +127,204 @@ export default function AssessmentBuilder({ mode = "create" }) {
   if (loading) return <p className="p-6">Loading assessment...</p>
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="p-4 font-bold text-lg">Assessment Builder</h2>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 dark:text-gray-200">
+      <h2 className="p-4 font-bold text-xl text-gray-900 dark:text-white">Assessment Builder</h2>
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
         {/* LEFT: Builder */}
         <div className="space-y-4">
           <div className="flex gap-3 items-center">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter Assessment Title"
-              className="text-lg font-semibold"
-            />
-            <Button onClick={addSection}>+ Add Section</Button>
-          </div>
+  <Input
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+    placeholder="Enter Assessment Title"
+    className="text-lg font-semibold border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+  />
+  <Button
+    variant="outline"
+    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+    onClick={addSection}
+  >
+    + Add Section
+  </Button>
+</div>
 
           {sections.map((section, sIdx) => (
-            <Card key={sIdx} className="overflow-visible">
-              <CardHeader>
-                <CardTitle>
+  <Card
+    key={sIdx}
+    className="overflow-visible border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+  >
+    <CardHeader>
+      <CardTitle>
+        <Input
+          value={section.title}
+          onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
+          placeholder={`Section ${sIdx + 1} Title`}
+          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+        />
+      </CardTitle>
+    </CardHeader>
+
+    <CardContent className="space-y-4">
+      {section.questions.map((q, qIdx) => (
+        <div
+          key={qIdx}
+          className="p-3 border rounded-md space-y-2 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+        >
+          <Input
+            value={q.label}
+            onChange={(e) => updateQuestion(sIdx, qIdx, "label", e.target.value)}
+            placeholder="Question text"
+            className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+          />
+
+          <Select
+            value={q.type}
+            onValueChange={(val) => {
+              updateQuestion(sIdx, qIdx, "type", val)
+              if (
+                ["single-choice", "multi-choice"].includes(val) &&
+                q.choices.length === 0
+              ) {
+                updateQuestion(sIdx, qIdx, "choices", ["Option 1"])
+              }
+            }}
+          >
+            <SelectTrigger className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+              <SelectValue placeholder="Select question type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              {QUESTION_TYPES.map((t) => (
+                <SelectItem
+                  key={t.value}
+                  value={t.value}
+                  className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {["single-choice", "multi-choice"].includes(q.type) && (
+            <div className="space-y-2">
+              {q.choices.map((opt, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
                   <Input
-                    value={section.title}
-                    onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
-                    placeholder={`Section ${sIdx + 1} Title`}
+                    value={opt}
+                    onChange={(e) => {
+                      const newChoices = [...q.choices]
+                      newChoices[idx] = e.target.value
+                      updateQuestion(sIdx, qIdx, "choices", newChoices)
+                    }}
+                    className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                   />
-                </CardTitle>
-              </CardHeader>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => removeOption(sIdx, qIdx, idx)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button
+                size="sm"
+                variant="outline"
+                className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => addOption(sIdx, qIdx)}
+              >
+                + Add Option
+              </Button>
+            </div>
+          )}
 
-              <CardContent className="space-y-4">
-                {section.questions.map((q, qIdx) => (
-                  <div key={qIdx} className="p-3 border rounded-md space-y-2 bg-white">
-                    <Input
-                      value={q.label}
-                      onChange={(e) => updateQuestion(sIdx, qIdx, "label", e.target.value)}
-                      placeholder="Question text"
-                    />
+          {q.type === "short-text" && (
+            <Input
+              readOnly
+              placeholder="Short answer input"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+            />
+          )}
+          {q.type === "long-text" && (
+            <Textarea
+              readOnly
+              placeholder="Long answer textarea"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+            />
+          )}
+          {q.type === "numeric" && (
+            <Input
+              readOnly
+              placeholder="Numeric input"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+            />
+          )}
+          {q.type === "file" && (
+            <Input
+              readOnly
+              placeholder="File upload"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+            />
+          )}
+        </div>
+      ))}
 
-                    <Select
-                      value={q.type}
-                      onValueChange={(val) => {
-                        updateQuestion(sIdx, qIdx, "type", val)
-                        if (["single-choice", "multi-choice"].includes(val) && q.choices.length === 0) {
-                          updateQuestion(sIdx, qIdx, "choices", ["Option 1"])
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select question type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {QUESTION_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+      <Button
+        onClick={() => addQuestion(sIdx)}
+        variant="outline"
+        className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+      >
+        + Add Question
+      </Button>
+    </CardContent>
+  </Card>
+))}
 
-                    {["single-choice", "multi-choice"].includes(q.type) && (
-                      <div className="space-y-2">
-                        {q.choices.map((opt, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
-                            <Input
-                              value={opt}
-                              onChange={(e) => {
-                                const newChoices = [...q.choices]
-                                newChoices[idx] = e.target.value
-                                updateQuestion(sIdx, qIdx, "choices", newChoices)
-                              }}
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeOption(sIdx, qIdx, idx)}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        ))}
-                        <Button size="sm" variant="outline" onClick={() => addOption(sIdx, qIdx)}>
-                          + Add Option
-                        </Button>
-                      </div>
-                    )}
+<Button
+  onClick={saveAssessment}
+  className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+>
+  {mode === "edit" ? "Update Assessment" : "Create Assessment"}
+</Button>
 
-                    {q.type === "short-text" && <Input readOnly placeholder="Short answer input" />}
-                    {q.type === "long-text" && <Textarea readOnly placeholder="Long answer textarea" />}
-                    {q.type === "numeric" && <Input readOnly placeholder="Numeric input" />}
-                    {q.type === "file" && <Input readOnly placeholder="File upload" />}
-                  </div>
-                ))}
-
-                <Button onClick={() => addQuestion(sIdx)}>+ Add Question</Button>
-              </CardContent>
-            </Card>
-          ))}
-
-          <Button onClick={saveAssessment} className="w-full">
-            {mode === "edit" ? "Update Assessment" : "Create Assessment"}
-          </Button>
         </div>
 
         {/* RIGHT: Live Preview */}
-        <div className="p-6 rounded-md shadow overflow-auto max-h-screen bg-white">
-          <h2 className="text-2xl font-bold mb-4">{title || "Live Preview"}</h2>
+        <div className="p-6 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm overflow-auto max-h-screen bg-white dark:bg-gray-900">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            {title || "Live Preview"}
+          </h2>
 
           {sections.length === 0 && (
-            <p className="text-muted-foreground">No sections yet. Add a section to start building.</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No sections yet. Add a section to start building.
+            </p>
           )}
 
           {sections.map((s, sIdx) => (
             <section key={sIdx} className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+                {s.title}
+              </h3>
               <div className="space-y-4">
                 {s.questions.map((q, qIdx) => (
-                  <div key={qIdx} className="p-3 border rounded">
-                    <p className="font-medium mb-2">{q.label}</p>
+                  <div
+                    key={qIdx}
+                    className="p-3 border rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                  >
+                    <p className="font-medium mb-2 text-gray-900 dark:text-gray-100">{q.label}</p>
 
                     {q.type === "multi-choice" &&
                       q.choices.map((c, i) => (
-                        <label key={i} className="flex items-center gap-2">
+                        <label key={i} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                           <input type="checkbox" /> {c}
                         </label>
                       ))}
 
                     {q.type === "single-choice" &&
                       q.choices.map((c, i) => (
-                        <label key={i} className="flex items-center gap-2">
+                        <label key={i} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                           <input type="radio" name={`q-${sIdx}-${qIdx}`} /> {c}
                         </label>
                       ))}

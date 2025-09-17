@@ -291,6 +291,23 @@ export const handlers = [
     return HttpResponse.json(created, { status: 201 });
   }),
 
+  http.patch("/notes/:id", async ({ request, params }) => {
+  await simulateNetwork(LATENCY);
+  const id = parseInt(params.id, 10);
+  const body = await request.json();
+  await db.notes.update(id, body);
+  const updated = await db.notes.get(id);
+  return HttpResponse.json(updated);
+}),
+
+// Fetch candidate timeline
+http.get("/candidates/:id/timeline", async ({ params }) => {
+  await simulateNetwork(LATENCY);
+  const id = parseInt(params.id, 10);
+  const items = await db.timelines.where("candidateId").equals(id).sortBy("timestamp");
+  return HttpResponse.json({ items });
+}),
+
   // -------------------- ASSESSMENTS --------------------
   http.get("/assessments/:jobId", async ({ params }) => {
     await simulateNetwork(LATENCY);
