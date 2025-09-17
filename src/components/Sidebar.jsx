@@ -1,9 +1,22 @@
-import { Briefcase, FileText, Settings, X } from "lucide-react"
+import {
+  Home,
+  Briefcase,
+  Users,
+  ClipboardList,
+  FileText,
+} from "lucide-react"
+
 import clsx from "clsx"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 
 export default function Sidebar({ collapsed = false, mobile = false, onClose }) {
+  const sidebarLinks = [
+  { icon: Home, label: "Dashboard", href: "/" },
+  { icon: Briefcase, label: "Jobs", href: "/jobs" },
+  { icon: Users, label: "Candidates", href: "/candidates" },
+  { icon: ClipboardList, label: "Assessments", href: "/assessment" },
+]
   return (
     <aside
       className={clsx(
@@ -14,7 +27,7 @@ export default function Sidebar({ collapsed = false, mobile = false, onClose }) 
       {/* Header with Logo + Title + Close (only in mobile) */}
       <div
         className={clsx(
-          "flex items-center justify-between p-4 transition-all duration-300 ease-in-out border-b border-gray-200 dark:border-gray-700",
+          "flex items-center justify-between p-4 transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700",
           collapsed && !mobile ? "justify-center" : "gap-2"
         )}
       >
@@ -43,28 +56,23 @@ export default function Sidebar({ collapsed = false, mobile = false, onClose }) 
       </div>
 
       {/* Nav links */}
-      <nav className="flex-1 mt-4 space-y-1">
-        {[
-          { icon: Briefcase, label: "Dashboard", href: "/" },
-          { icon: Briefcase, label: "Jobs", href: "/jobs" },
-          { icon: FileText, label: "Candidate", href: "/candidates" },
-          { icon: Settings, label: "Assessments", href: "/assessment" },
-        ].map(({ icon: Icon, label, href }) => (
-          <Link
-            key={label}
-            to={href}
-            className={clsx(
-              "flex items-center rounded text-sm transition-all duration-300 ease-in-out",
-              collapsed && !mobile
-                ? "flex-col gap-1 align-center text-xs w-fit mx-auto justify-center p-3 hover:text-blue-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                : "gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-            )}
-          >
-            <Icon className="w-5 h-5" />
-            {(!collapsed || mobile) && <span>{label}</span>}
-          </Link>
-        ))}
-      </nav>
+       <nav className="flex-1 mt-4 space-y-1">
+      {sidebarLinks.map(({ icon: Icon, label, href }) => (
+        <Link
+          key={label}
+          to={href}
+          className={clsx(
+            "flex items-center rounded text-sm transition-all duration-300 ease-in-out",
+            collapsed && !mobile
+              ? "flex-col gap-1 align-center text-xs w-fit mx-auto justify-center p-3 hover:text-blue-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              : "gap-3 px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+          )}
+        >
+          <Icon className="w-5 h-5" />
+          {(!collapsed || mobile) && <span>{label}</span>}
+        </Link>
+      ))}
+    </nav>
     </aside>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { db } from "../db/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Assessments() {
@@ -51,13 +51,16 @@ export default function Assessments() {
     <div className="space-y-8 p-6 lg:p-8 dark:bg-gray-900 min-h-screen dark:text-gray-100">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Assessments</h2>
-        <Button
+      <h2 className="flex items-center gap-2 text-xl px-4 font-bold text-gray-900 dark:text-white">
+  <ClipboardList className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+  Assessments
+</h2>
+        {/* <Button
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
           onClick={() => navigate("/assessment/create")}
         >
           + Create Assessment
-        </Button>
+        </Button> */}
       </div>
 
       {/* Assessment Cards */}

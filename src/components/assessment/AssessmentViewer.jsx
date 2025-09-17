@@ -29,7 +29,7 @@ export default function AssessmentViewer() {
   }, [id])
 
   if (!assessment) {
-    return <p className="p-4 text-gray-500">Loading assessment...</p>
+    return <p className="p-4 text-gray-500 dark:text-gray-400">Loading assessment...</p>
   }
 
   const { title, jobTitle, sections = [], createdAt } = assessment
@@ -40,11 +40,11 @@ export default function AssessmentViewer() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* LEFT SECTION: Questions */}
       <div className="lg:col-span-2 space-y-6">
         {/* Top header */}
-        <div className="flex flex-col p-4 md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col p-4 md:flex-row md:items-center justify-between gap-4 border border-gray-200 dark:border-gray-700 rounded-lg">
           <div>
             <h2 className="text-2xl font-bold">{title}</h2>
             {jobTitle && <p className="text-gray-500 dark:text-gray-400">{jobTitle}</p>}
@@ -63,7 +63,10 @@ export default function AssessmentViewer() {
 
         {/* Sections + Questions */}
         {sections.map((s, sIdx) => (
-          <Card key={sIdx} className="space-y-4 p-6">
+          <Card
+            key={sIdx}
+            className="space-y-4 p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+          >
             {s.title && <h3 className="font-semibold text-lg">{s.title}</h3>}
             {s.questions.map((q, idx) => (
               <div key={idx} className="space-y-2">
@@ -109,16 +112,14 @@ export default function AssessmentViewer() {
                   )}
 
                   {/* File */}
-                  {q.type === "file" && (
-                    <Input type="file" className="mt-1" />
-                  )}
+                  {q.type === "file" && <Input type="file" className="mt-1" />}
                 </CardContent>
               </div>
             ))}
           </Card>
         ))}
 
-        <CardFooter className="flex justify-end">
+        <CardFooter className="flex justify-end border-t border-gray-200 dark:border-gray-700">
           <Button>Submit Assessment</Button>
         </CardFooter>
       </div>
@@ -126,7 +127,7 @@ export default function AssessmentViewer() {
       {/* RIGHT SECTION: Quick Actions + Info */}
       <div className="space-y-6">
         {/* Quick Action Card */}
-        <Card className="p-4 space-y-4">
+        <Card className="p-4 space-y-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <p className="font-semibold text-gray-700 dark:text-gray-200">Quick Actions</p>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" className="rounded-xl">Create Job</Button>
@@ -135,7 +136,7 @@ export default function AssessmentViewer() {
         </Card>
 
         {/* Additional Info Card */}
-        <Card className="p-4 space-y-2">
+        <Card className="p-4 space-y-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold">Assessment Info</CardTitle>
           </CardHeader>
